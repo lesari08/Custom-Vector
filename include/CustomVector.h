@@ -18,12 +18,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#ifndef CUSTOM_VECTOR_H
+#define CUSTOM_VECTOR_H 1
+
 #include <memory>
-#include <vector>
 
 namespace custom
 {
-
     /**
      *  @brief struct Vector_Memory_Manager is responsible for allocating and
      *   dellallocating memory for an associated Vector class
@@ -40,22 +41,15 @@ namespace custom
     template <class T, class AllocType>
     struct Vector_Memory_Manager
     {
-        AllocType alloc;
-        T *block_start;
-        T *uninitialized_block_start;
-        T *block_end;
-
         Vector_Memory_Manager(const AllocType &_alloc, typename AllocType::size_type n)
-            : alloc{_alloc},
-              block_start{alloc.allocate(n)},
+            : alloc{_alloc}, block_start{alloc.allocate(n)},
               uninitialized_block_start{block_start + n},
               block_end{block_start + n}
         {
         }
 
         Vector_Memory_Manager(Vector_Memory_Manager &&other)
-            : alloc{other.alloc},
-              block_start{other.block_start},
+            : alloc{other.alloc}, block_start{other.block_start},
               uninitialized_block_start{other.uninitialized_block_start},
               block_end{other.block_end}
         {
@@ -65,10 +59,10 @@ namespace custom
 
         Vector_Memory_Manager &operator=(Vector_Memory_Manager &&other);
 
-        typename AllocType::size_type max_size()
-        {
-            return std::allocator_traits<decltype(alloc)>::max_size(alloc);
-        }
+        Vector_Memory_Manager() = delete;
+        // no copy operations allowed
+        Vector_Memory_Manager(const Vector_Memory_Manager &) = delete;
+        Vector_Memory_Manager &operator=(const Vector_Memory_Manager &) = delete;
 
         ~Vector_Memory_Manager()
         {
@@ -76,15 +70,19 @@ namespace custom
                              block_end - block_start);
         }
 
-        // Vector_Memory_Manager() = delete;
-        // no copy operations allowed
-        Vector_Memory_Manager(const Vector_Memory_Manager &) = delete;
-        Vector_Memory_Manager &operator=(const Vector_Memory_Manager &) = delete;
+        typename AllocType::size_type max_size()
+        {
+            return std::allocator_traits<decltype(alloc)>::max_size(alloc);
+        }
+
+        AllocType alloc;
+        T *block_start;
+        T *uninitialized_block_start;
+        T *block_end;
     };
 
-
     /**
-     *  @brief Vector_Memory_Manager's move assignment operator 
+     *  @brief Vector_Memory_Manager's move assignment operator
      *
      *  @tparam Type  Type of element.
      *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
@@ -92,9 +90,11 @@ namespace custom
      *
      */
     template <class T, class A>
-    Vector_Memory_Manager<T, A> &Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager &&other)
+    Vector_Memory_Manager<T, A> &
+    Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager &&other)
     {
-        if (this != &other){
+        if (this != &other)
+        {
             alloc = other.alloc;
             block_start = other.block_start;
             uninitialized_block_start = other.uninitialized_block_start;
@@ -102,7 +102,7 @@ namespace custom
 
             other.block_start = other.block_end = other.uninitialized_block_start = nullptr;
 
-            //std::swap(*this, other);
+            // std::swap(*this, other);
         }
 
         return *this;
@@ -110,14 +110,13 @@ namespace custom
 
     /**
 
-     *  @brief A custom vector container which replicates the 
+     *  @brief A custom vector container which replicates the
      *  functionality of std::vector
      *
      *  A vector can be described as a dynamic
      *  C-style array, providing quick, random access to any element.
      *  This container allow shields the user from
-     *  memory and size allocation concerns Subscripting ( @c [] ) access is
-     *  also provided as with C-style arrays.
+     *  memory and size allocation concerns
      *
      *  @tparam Type  Type of element.
      *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
@@ -126,85 +125,110 @@ namespace custom
     template <class T, typename AllocType = std::allocator<T>>
     class Vector
     {
-    private:
-        Vector_Memory_Manager<T, AllocType> mem_manager;
-
-        void destroyElements();
 
     public:
         using size_type = size_t;
+        using difference_type = std::ptrdiff_t;
+
+        class Iterator
+        {
+        public:
+            Iterator(T *ptr) : m_ptr(ptr) {}
+
+            T &operator*() const { return *m_ptr; }
+            T *operator->() const { return m_ptr; }
+
+            Iterator &operator++()
+            {
+                ++m_ptr;
+                return *this;
+            }
+
+            Iterator &operator--()
+            {
+                --m_ptr;
+                return *this;
+            }
+
+            Iterator &operator+=(difference_type n)
+            {
+                m_ptr += n;
+                return *this;
+            }
+            Iterator &operator-=(difference_type n)
+            {
+                m_ptr -= n;
+                return *this;
+            }
+
+            Iterator operator+(difference_type n) const { return Iterator(m_ptr + n); }
+            Iterator operator-(difference_type n) const { return Iterator(m_ptr - n); }
+
+            difference_type operator-(const Iterator &other) const { return m_ptr - other.m_ptr; }
+
+            T &operator[](difference_type n) const { return *(m_ptr + n); }
+
+            bool operator==(const Iterator &other) const { return m_ptr == other.m_ptr; }
+            bool operator!=(const Iterator &other) const { return m_ptr != other.m_ptr; }
+            bool operator<(const Iterator &other) const { return m_ptr < other.m_ptr; }
+            bool operator>(const Iterator &other) const { return m_ptr > other.m_ptr; }
+            bool operator<=(const Iterator &other) const { return m_ptr <= other.m_ptr; }
+            bool operator>=(const Iterator &other) const { return m_ptr >= other.m_ptr; }
+
+        private:
+            T *m_ptr;
+        };
 
         Vector(const AllocType &alloc = AllocType());
 
         explicit Vector(size_type n, const T &val = T(),
                         const AllocType &alloc = AllocType());
 
-        // copy constructors
         Vector(const Vector &other);
-        Vector &operator=(const Vector &other) const;
-
-        // move constructors
         Vector(Vector &&other);
+        Vector &operator=(const Vector &other) const;
         Vector &operator=(Vector &&other);
 
         ~Vector() { destroyElements(); }
 
-        //--------------------------------------------
-        // Get
-        //--------------------------------------------
+        T at(size_type idx) { return *(mem_manager.block_start + idx); }
+        T operator[](size_type idx) { return at(idx); }
 
-        T at(size_type idx)
-        {
-            T *ptr = mem_manager.block_start;
-            return ptr[idx];
-        }
+        void push_back(const T &val);
+        void insert(size_type index, const T &val);
+        
 
-        //--------------------------------------------
-        // Capacity and Size
-        //--------------------------------------------
         size_type capacity() const
         {
             return mem_manager.block_end - mem_manager.block_start;
         }
-        // empty the vector
-        void clear() { resize(0); }
-
-        bool empty() { return mem_manager.uninitialized_block_start - mem_manager.block_start == 0; }
-
-        size_type maxSize() const
+        bool empty() const
         {
-            throw std::logic_error("Function Not Implemented");
-            return 0;
+            return mem_manager.uninitialized_block_start - mem_manager.block_start == 0;
         }
 
-        // increase capacity
+        size_type maxSize() const;
         void reserve(size_type);
-
         void resize(size_type, T = {});
+        void clear() { resize(0); }
 
         size_type size() const
         {
             return mem_manager.uninitialized_block_start - mem_manager.block_start;
         }
 
-        void push_back(const T &val);
-
         //--------------------------------------------
-        // Iterators
+        // Iterator Methods
         //--------------------------------------------
+        using const_iterator = const Iterator;
+        Iterator begin() { return Iterator(mem_manager.block_start); }
+        const Iterator begin() const { return const_iterator(mem_manager.block_start); }
+        Iterator end() { return iterator(mem_manager.uninitialized_block_start); }
+        const Iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
-        // //
-        // begin();
-        // end();
-        // TO-DO
-        /*
-            rbegin()
-            rend()
-            cbegin()
-            cend()
-            crbegin()
-            crend()
-        */
+    private:
+        Vector_Memory_Manager<T, AllocType> mem_manager;
+        void destroyElements();
     };
 
     //------------------------------------------------------------
@@ -220,7 +244,12 @@ namespace custom
                                 mem_manager.block_start + n, val);
     }
 
-    // copy constructor
+    /**
+     * @brief copy constructor
+     *
+     * @param other vector object
+     * @return n/a
+     */
     template <class T, typename A>
     Vector<T, A>::Vector(const Vector &other)
         : mem_manager{other.alloc111, other.size()}
@@ -228,19 +257,29 @@ namespace custom
         uninitialized_copy(other.begin(), other.end(), mem_manager.block_start);
     }
 
-    // copy assignment
+    /**
+     * @brief copy assignment operator
+     *
+     * @param other vector object
+     * @return Vector reference
+     */
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(const Vector &other) const
     {
         Vector<T, A> vec;
 
-        // delete old items
+        // delete old items before copying vals
 
         throw std::logic_error("Function Not Implemented");
         return vec;
     }
 
-    // move constructor
+    /**
+     * @brief move constructor
+     *
+     * @param other vector object
+     * @return n/a
+     */
     template <class T, typename A>
     Vector<T, A>::Vector(Vector &&other)
         : mem_manager{other.alloc, other.size()}
@@ -248,7 +287,12 @@ namespace custom
         throw std::logic_error("Function Not Implemented");
     }
 
-    // move assignment
+    /**
+     * @brief move assignment operator
+     *
+     * @param other vector object
+     * @return Vector reference
+     */
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(Vector &&other)
     {
@@ -261,6 +305,13 @@ namespace custom
     //------------------------------------------------------------
     // Capacity and Size
     //------------------------------------------------------------
+
+    /**
+     * @brief reserve specified amount of memory for vector
+     *
+     * @param size_to_reserve size of memory to allocate
+     * @return n/a
+     */
     template <class T, typename A>
     void Vector<T, A>::reserve(size_type size_to_reserve)
     {
@@ -276,24 +327,47 @@ namespace custom
         std::swap(new_manager, mem_manager);
     }
 
+    /**
+     * @brief resize vector based on given new_size
+     *
+     * @param new_size number of objects in vector
+     *  after the operation has completed
+     * @param T val the value that will be assigned
+     *  to uninitialized memory spaces
+     * @return n/a
+     */
     template <class T, typename A>
     void Vector<T, A>::resize(size_type new_size, T val)
     {
         reserve(new_size);
         if (size() < new_size)
-            std::uninitialized_fill(mem_manager.block_start + size(), mem_manager.block_start + new_size, val);
+            std::uninitialized_fill(mem_manager.block_start + size(),
+                                    mem_manager.block_start + new_size, val);
         else // shrink
-            destory(mem_manager.alloc, mem_manager.block_start + new_size, mem_manager.block_start + size());
+            destory(mem_manager.alloc, mem_manager.block_start + new_size,
+                    mem_manager.block_start + size());
 
         mem_manager.uninitialized_block_start = mem_manager.block_start + new_size;
-
-        // TO-DO
-        // Do we need to reassign mem_block_end as well or leave it as is?
-        //  mem_manager.mem_block_end = mem_manager.mem_block_start + new_size;
     }
 
     /**
-     * @brief calls the destructor for each element in Vector
+     * @brief
+     *
+     * @return
+     */
+    template <class T, typename A>
+    typename Vector<T, A>::size_type Vector<T, A>::maxSize() const
+    {
+        throw std::logic_error("Function Not Implemented");
+        return 0;
+    }
+
+    //------------------------------------------------------------
+    // Insertions
+    //------------------------------------------------------------
+
+    /**
+     * @brief append element to end of vector
      *
      * @param val the value to add to vector
      * @return void
@@ -301,19 +375,34 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::push_back(const T &val)
     {
-
         if (size() == capacity())
             reserve(empty() ? 1 : size() * 2);
 
-        size_type siz = size();
-        size_type cap = capacity();
-
-        std::allocator_traits<decltype(mem_manager.alloc)>::construct(mem_manager.alloc, mem_manager.uninitialized_block_start, val);
+        std::allocator_traits<decltype(mem_manager.alloc)>::construct(
+            mem_manager.alloc, mem_manager.uninitialized_block_start, val);
         ++mem_manager.uninitialized_block_start;
     }
 
     /**
-     * @brief calls the destructor for each element in Vector
+     * @brief insert val at given index
+     *
+     * @param index position to insert
+     * @param val the value to add
+     * @return void
+     */
+    template <class T, typename A>
+    void Vector<T, A>::insert(size_type index, const T &val)
+    {
+        throw std::logic_error("Function Not Implemented");
+    }
+
+    //------------------------------------------------------------
+    // Clean up
+    //------------------------------------------------------------
+
+    /**
+     * @brief calls the destructor
+     * for each element in Vector
      *
      * @return void
      */
@@ -329,3 +418,5 @@ namespace custom
         mem_manager.uninitialized_block_start = mem_manager.block_start;
     }
 }
+
+#endif

@@ -10,7 +10,9 @@ int main()
    // int* start = alloc.allocate(5);
    // std::uninitialized_fill(start, start + 5, 7);
 
-   
+
+   std::vector<int> vec2;
+   vec2.push_back(4);
     custom::Vector<int> vec(3,7);
    vec.push_back(5);
      vec.push_back(9);
@@ -21,7 +23,10 @@ int main()
         std::cout<<vec.at(i)<<"\n";
        
     }
-   // std::cout<<vec.at(1)<<"\n";
+
+    custom::Vector<int>::Iterator itr(vec.begin());
+    ++itr;
+   std::cout<<"itr:"<<*itr<<"\n";
 
     
     
