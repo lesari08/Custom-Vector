@@ -8,6 +8,6 @@ using namespace std;
 
 int main()
 {
-    cout<<"testing\n";
+    cout<<"in main cpp\n";
 
 }
