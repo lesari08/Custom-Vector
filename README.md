@@ -2,31 +2,29 @@
 A custom vector container that replicates the functionality of the std::vector class.
 Uses Google Tests for testing (TO-DO)
 
-## Build Instructions (Linux)
+## Build Instructions (From Linux Terminal)
 Requirements: CMake
 
-1. Open a terminal window.
-2. Change to the directory where you want to download the project.
-3. Clone the project using the following command:
+1. Clone the project
 
       `git clone https://github.com/lesari08/Custom-Vector.git`
 
-4. Change to the project directory: 
+2. Open the cloned projects directory
 
     `cd Custom-Vector/`  
-6. Create a build directory:  
+3. Create a build directory:  
     `mkdir build`  
-7. Change to the build directory:  
+4. CD to the build directory:  
     `cd build`
 
-8. Generate the build files using CMake:  
+5. Generate the build files using CMake:  
     `cmake ..`
 
-9. Build the project:  
+6. Build the project:  
     `cmake --build .`
 
-10. Run the executable:  
-    `./CustomVector`  
+7. Run the executable:  
+    `bin/CustomVector`  
 
 Note: Make sure you have CMake installed on your system before proceeding with the build instructions.
 
