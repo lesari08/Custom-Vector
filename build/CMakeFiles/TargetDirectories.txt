@@ -1,3 +1,0 @@
-/home/lesari/projects/LibVector/build/CMakeFiles/CustomVector.dir
-/home/lesari/projects/LibVector/build/CMakeFiles/edit_cache.dir
-/home/lesari/projects/LibVector/build/CMakeFiles/rebuild_cache.dir
