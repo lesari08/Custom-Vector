@@ -185,7 +185,7 @@ namespace custom
         using const_iterator = const Iterator;
         Iterator begin() { return Iterator(mem_manager.block_start); }
         const Iterator begin() const { return const_iterator(mem_manager.block_start); }
-        Iterator end() { return iterator(mem_manager.uninitialized_block_start); }
+        Iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
         const Iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
     private:
@@ -220,8 +220,26 @@ namespace custom
         return *this;
     }
 
+
     /*******************************************************************************
-     * @brief constructor
+     * @brief default constructor
+     *
+     * @param n size
+     * @param val default value for constructed objects
+     * @param alloc allocator
+     * @return n/a
+     *******************************************************************************/
+    template <class T, typename A>
+    Vector<T, A>::Vector(const A &alloc)
+        : mem_manager{alloc, 0}
+    {
+        // construct n copies of val (in-place)
+     //   std::uninitialized_fill(mem_manager.block_start,
+      //                          mem_manager.block_start + n, val);
+    }
+
+    /*******************************************************************************
+     * @brief parameter constructor
      *
      * @param n size
      * @param val default value for constructed objects
