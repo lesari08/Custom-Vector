@@ -1,22 +1,9 @@
-/*
-The MIT License (MIT)
-Copyright (c) 2023 Leslie Aririguzo
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
+/*******************************************************************************
+ *  @file CustomVector.h
+ *  @brief This file contains methods that define and implement a custom Vector
+ *
+ *  @author Leslie Aririguzo
+ *******************************************************************************/
 
 #ifndef CUSTOM_VECTOR_H
 #define CUSTOM_VECTOR_H 1
@@ -25,8 +12,10 @@ THE SOFTWARE.
 
 namespace custom
 {
-    /**
-     *  @brief struct Vector_Memory_Manager is responsible for allocating and
+    /*******************************************************************************
+     * struct Vector_Memory_Manager
+     *
+     *   @brief responsible for allocating and
      *   dellallocating memory for an associated Vector class
      *
      *   Instances of this struct are created during the creation of a vector
@@ -37,7 +26,7 @@ namespace custom
      *  @tparam Type  Type of element.
      *  @tparam AllocType  Allocator type, default value is allocator<Type>.
      *
-     */
+     *******************************************************************************/
     template <class T, class AllocType>
     struct Vector_Memory_Manager
     {
@@ -75,41 +64,15 @@ namespace custom
             return std::allocator_traits<decltype(alloc)>::max_size(alloc);
         }
 
-        AllocType alloc;
+        AllocType alloc; // TODO: replace the allocator with allocator_traits
         T *block_start;
         T *uninitialized_block_start;
         T *block_end;
     };
 
-    /**
-     *  @brief Vector_Memory_Manager's move assignment operator
-     *
-     *  @tparam Type  Type of element.
-     *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
-     *  @param other Vector_Memory_Manager object
-     *
-     */
-    template <class T, class A>
-    Vector_Memory_Manager<T, A> &
-    Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager &&other)
-    {
-        if (this != &other)
-        {
-            alloc = other.alloc;
-            block_start = other.block_start;
-            uninitialized_block_start = other.uninitialized_block_start;
-            block_end = other.block_end;
-
-            other.block_start = other.block_end = other.uninitialized_block_start = nullptr;
-
-            // std::swap(*this, other);
-        }
-
-        return *this;
-    }
-
-    /**
-
+    /*******************************************************************************
+     * class Vector
+     * 
      *  @brief A custom vector container which replicates the
      *  functionality of std::vector
      *
@@ -121,7 +84,7 @@ namespace custom
      *  @tparam Type  Type of element.
      *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
      *
-     */
+     *******************************************************************************/
     template <class T, typename AllocType = std::allocator<T>>
     class Vector
     {
@@ -196,7 +159,6 @@ namespace custom
 
         void push_back(const T &val);
         void insert(size_type index, const T &val);
-        
 
         size_type capacity() const
         {
@@ -231,10 +193,41 @@ namespace custom
         void destroyElements();
     };
 
-    //------------------------------------------------------------
-    // Constuctors
-    //------------------------------------------------------------
+    /*******************************************************************************
+     *  @brief Vector_Memory_Manager:: move assignment operator
+     *
+     *  @tparam Type  Type of element.
+     *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
+     *  @param other Vector_Memory_Manager object
+     *
+     *******************************************************************************/
+    template <class T, class A>
+    Vector_Memory_Manager<T, A> &
+    Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager &&other)
+    {
+        if (this != &other)
+        {
+            alloc = other.alloc;
+            block_start = other.block_start;
+            uninitialized_block_start = other.uninitialized_block_start;
+            block_end = other.block_end;
 
+            other.block_start = other.block_end = other.uninitialized_block_start = nullptr;
+
+            // std::swap(*this, other);
+        }
+
+        return *this;
+    }
+
+    /*******************************************************************************
+     * @brief constructor
+     *
+     * @param n size
+     * @param val default value for constructed objects
+     * @param alloc allocator
+     * @return n/a
+     *******************************************************************************/
     template <class T, typename A>
     Vector<T, A>::Vector(size_type n, const T &val, const A &alloc)
         : mem_manager{alloc, n}
@@ -244,12 +237,12 @@ namespace custom
                                 mem_manager.block_start + n, val);
     }
 
-    /**
+    /*******************************************************************************
      * @brief copy constructor
      *
      * @param other vector object
      * @return n/a
-     */
+     *******************************************************************************/
     template <class T, typename A>
     Vector<T, A>::Vector(const Vector &other)
         : mem_manager{other.alloc111, other.size()}
@@ -257,12 +250,12 @@ namespace custom
         uninitialized_copy(other.begin(), other.end(), mem_manager.block_start);
     }
 
-    /**
+    /*******************************************************************************
      * @brief copy assignment operator
      *
      * @param other vector object
      * @return Vector reference
-     */
+     *******************************************************************************/
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(const Vector &other) const
     {
@@ -274,12 +267,12 @@ namespace custom
         return vec;
     }
 
-    /**
+    /*******************************************************************************
      * @brief move constructor
      *
      * @param other vector object
      * @return n/a
-     */
+     *******************************************************************************/
     template <class T, typename A>
     Vector<T, A>::Vector(Vector &&other)
         : mem_manager{other.alloc, other.size()}
@@ -287,12 +280,12 @@ namespace custom
         throw std::logic_error("Function Not Implemented");
     }
 
-    /**
+    /*******************************************************************************
      * @brief move assignment operator
      *
      * @param other vector object
      * @return Vector reference
-     */
+     *******************************************************************************/
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(Vector &&other)
     {
@@ -302,16 +295,14 @@ namespace custom
         return vec;
     }
 
-    //------------------------------------------------------------
-    // Capacity and Size
-    //------------------------------------------------------------
-
-    /**
+    /*******************************************************************************
+     * reserve
+     *
      * @brief reserve specified amount of memory for vector
      *
      * @param size_to_reserve size of memory to allocate
      * @return n/a
-     */
+     *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::reserve(size_type size_to_reserve)
     {
@@ -327,7 +318,9 @@ namespace custom
         std::swap(new_manager, mem_manager);
     }
 
-    /**
+    /*******************************************************************************
+     * resize
+     *
      * @brief resize vector based on given new_size
      *
      * @param new_size number of objects in vector
@@ -335,7 +328,7 @@ namespace custom
      * @param T val the value that will be assigned
      *  to uninitialized memory spaces
      * @return n/a
-     */
+     *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::resize(size_type new_size, T val)
     {
@@ -350,11 +343,13 @@ namespace custom
         mem_manager.uninitialized_block_start = mem_manager.block_start + new_size;
     }
 
-    /**
-     * @brief
+    /*******************************************************************************
+     * maxSize
      *
-     * @return
-     */
+     * @brief return the maximum size that can be allocated
+     *
+     * @return size_type
+     *******************************************************************************/
     template <class T, typename A>
     typename Vector<T, A>::size_type Vector<T, A>::maxSize() const
     {
@@ -366,12 +361,14 @@ namespace custom
     // Insertions
     //------------------------------------------------------------
 
-    /**
+    /*******************************************************************************
+     * push_back
+     *
      * @brief append element to end of vector
      *
      * @param val the value to add to vector
-     * @return void
-     */
+     * @return n/a
+     *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::push_back(const T &val)
     {
@@ -383,29 +380,29 @@ namespace custom
         ++mem_manager.uninitialized_block_start;
     }
 
-    /**
+    /*******************************************************************************
+     * insert
+     *
      * @brief insert val at given index
      *
      * @param index position to insert
      * @param val the value to add
      * @return void
-     */
+     *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::insert(size_type index, const T &val)
     {
         throw std::logic_error("Function Not Implemented");
     }
 
-    //------------------------------------------------------------
-    // Clean up
-    //------------------------------------------------------------
-
-    /**
+    /********************************************************************************
+     * destroyElements
+     *
      * @brief calls the destructor
      * for each element in Vector
      *
      * @return void
-     */
+     ********************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::destroyElements()
     {
@@ -419,4 +416,4 @@ namespace custom
     }
 }
 
-#endif
+#endif // CUSTOM_VECTOR_H
