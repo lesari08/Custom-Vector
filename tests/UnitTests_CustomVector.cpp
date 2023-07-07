@@ -84,12 +84,9 @@ TEST(MemoryManger, deletedConstructor)
     EXPECT_FALSE(std::is_copy_assignable<MemoryManger>::value);
 }
 
-
-
 //--------------------------------------------------------------------------------------------
 //---------------   class Vector tests    ----------------------------------------------------
 //--------------------------------------------------------------------------------------------
-
 
 class VectorTest : public ::testing::Test
 {
@@ -206,7 +203,6 @@ TEST(ConstructorTests, MoveAssignmentOperator)
         ASSERT_EQ(copy_vec.at(i), chars[i]);
 }
 
-
 // Iterators
 TEST(IteratorTests, iteratorBegin)
 {
@@ -251,40 +247,39 @@ TEST_F(VectorTest, iteratorIncrement)
 
 TEST(IteratorTests, iteratorEnd)
 {
-  GTEST_SKIP() << "Not yet implemented";
+    GTEST_SKIP() << "Not yet implemented";
 }
 
 TEST(IteratorTests, iteratorSequence)
 {
-     GTEST_SKIP() << "Not yet implemented";
+    GTEST_SKIP() << "Not yet implemented";
 }
-
 
 // Modifiers
 TEST(ModifierTests, pushBack)
 {
-	Vector<int> v;
+    Vector<int> v;
 
-	for (int i = 0; i < 10; ++i)
-		v.push_back(i);
+    for (int i = 0; i < 10; ++i)
+        v.push_back(i);
 
-	for (int i = 0; i < 10; ++i)
-		EXPECT_EQ(i, v[i]);
+    for (int i = 0; i < 10; ++i)
+        EXPECT_EQ(i, v[i]);
 
-	v.push_back(1000);
-	EXPECT_EQ(1000, v[v.size() - 1]);
+    v.push_back(1000);
+    EXPECT_EQ(1000, v[v.size() - 1]);
 }
 
 TEST(ModifierTests, popBack)
 {
-	Vector<int> v;
+    Vector<int> v;
 
-	for (int i = 0; i < 10; ++i)
-		v.push_back(i);
+    for (int i = 0; i < 10; ++i)
+        v.push_back(i);
 
     EXPECT_EQ(v.back(), 9);
 
-     GTEST_SKIP() << "Not yet implemented";
+    GTEST_SKIP() << "Not yet implemented";
     v.pop_back();
     EXPECT_EQ(v.back(), 8);
 }
@@ -294,104 +289,100 @@ TEST(AccessorTests, accessAt)
 {
     using namespace std;
 
-	Vector<int> v;
-    
-	EXPECT_THROW(v.at(0), out_of_range);
-	EXPECT_THROW(v.at(-97), out_of_range);
-	EXPECT_THROW(v.at(1), out_of_range);
+    Vector<int> v;
 
-	v.push_back(4);
-	v.push_back(8);
-	v.push_back(10);
-	v.push_back(-19);
-	v.push_back(0);
+    EXPECT_THROW(v.at(0), out_of_range);
+    EXPECT_THROW(v.at(-97), out_of_range);
+    EXPECT_THROW(v.at(1), out_of_range);
 
-	EXPECT_EQ(4, v.at(0));
-	EXPECT_EQ(8, v.at(1));
-	EXPECT_EQ(10, v.at(2));
-	EXPECT_EQ(-19, v.at(3));
-	EXPECT_EQ(0, v.at(4));
+    v.push_back(4);
+    v.push_back(8);
+    v.push_back(10);
+    v.push_back(-19);
+    v.push_back(0);
 
-	EXPECT_THROW(v.at(-1), out_of_range);
-	EXPECT_THROW(v.at(5), out_of_range);
+    EXPECT_EQ(4, v.at(0));
+    EXPECT_EQ(8, v.at(1));
+    EXPECT_EQ(10, v.at(2));
+    EXPECT_EQ(-19, v.at(3));
+    EXPECT_EQ(0, v.at(4));
 
+    EXPECT_THROW(v.at(-1), out_of_range);
+    EXPECT_THROW(v.at(5), out_of_range);
 
-	// Const vector
-	const Vector<int>& cv = v;
+    // Const vector
+    const Vector<int> &cv = v;
 
-	EXPECT_EQ(4, cv.at(0));
-	EXPECT_EQ(8, cv.at(1));
-	EXPECT_EQ(10, cv.at(2));
-	EXPECT_EQ(-19, cv.at(3));
-	EXPECT_EQ(0, cv.at(4));
+    EXPECT_EQ(4, cv.at(0));
+    EXPECT_EQ(8, cv.at(1));
+    EXPECT_EQ(10, cv.at(2));
+    EXPECT_EQ(-19, cv.at(3));
+    EXPECT_EQ(0, cv.at(4));
 
-	EXPECT_THROW(cv.at(-1), out_of_range);
-	EXPECT_THROW(cv.at(5), out_of_range);
-	EXPECT_THROW(cv.at(-2), out_of_range);
-	EXPECT_THROW(cv.at(8), out_of_range);
+    EXPECT_THROW(cv.at(-1), out_of_range);
+    EXPECT_THROW(cv.at(5), out_of_range);
+    EXPECT_THROW(cv.at(-2), out_of_range);
+    EXPECT_THROW(cv.at(8), out_of_range);
 }
-
 
 TEST(AccessorTests, accessBrackets)
 {
-	const int NUM_ELEMENTS = 50;
+    const int NUM_ELEMENTS = 50;
 
-	Vector<double> v;
+    Vector<double> v;
 
-	for (int i = 0; i < NUM_ELEMENTS; ++i)
-		v.push_back(i);
+    for (int i = 0; i < NUM_ELEMENTS; ++i)
+        v.push_back(i);
 
-	for (int i = 0; i < NUM_ELEMENTS; ++i)
-		EXPECT_EQ(i, v[i]);
+    for (int i = 0; i < NUM_ELEMENTS; ++i)
+        EXPECT_EQ(i, v[i]);
 
-	const Vector<double> cv = v;
+    const Vector<double> cv = v;
 
-	for (int i = 0; i < NUM_ELEMENTS; ++i)
-		EXPECT_EQ(i, cv[i]);
+    for (int i = 0; i < NUM_ELEMENTS; ++i)
+        EXPECT_EQ(i, cv[i]);
 }
 
 TEST(AccessorTests, accessFront)
 {
-	Vector<int> v;
+    Vector<int> v;
 
-	v.push_back(9);
-	EXPECT_EQ(9, v.front());
+    v.push_back(9);
+    EXPECT_EQ(9, v.front());
 
-	v.push_back(4);
-	EXPECT_EQ(9, v.front());
+    v.push_back(4);
+    EXPECT_EQ(9, v.front());
 }
-
 
 TEST(AccessorTests, accessBack)
 {
-	Vector<int> v;
+    Vector<int> v;
 
-	v.push_back(9);
-	EXPECT_EQ(9, v.back());
+    v.push_back(9);
+    EXPECT_EQ(9, v.back());
 
-	v.push_back(4);
-	EXPECT_EQ(4, v.back());
+    v.push_back(4);
+    EXPECT_EQ(4, v.back());
 
-	v.push_back(1);
-	EXPECT_EQ(1, v.back());
+    v.push_back(1);
+    EXPECT_EQ(1, v.back());
 }
-
 
 TEST(AccessorTests, accessData)
 {
-	Vector<char> v;
+    Vector<char> v;
 
-	v.push_back('t');
-	v.push_back('r');
-	v.push_back('o');
-	v.push_back('l');
-	v.push_back('l');
+    v.push_back('t');
+    v.push_back('r');
+    v.push_back('o');
+    v.push_back('l');
+    v.push_back('l');
 
-	char* ptrCh = v.data();
+    char *ptrCh = v.data();
 
-	EXPECT_EQ(*ptrCh, v.front());
-	EXPECT_EQ(*(ptrCh + 1), v.at(1));
-	EXPECT_EQ(*(ptrCh + 2), v.at(2));
-	EXPECT_EQ(*(ptrCh + 3), v.at(3));
-	EXPECT_EQ(*(ptrCh + 4), v.at(4));
+    EXPECT_EQ(*ptrCh, v.front());
+    EXPECT_EQ(*(ptrCh + 1), v.at(1));
+    EXPECT_EQ(*(ptrCh + 2), v.at(2));
+    EXPECT_EQ(*(ptrCh + 3), v.at(3));
+    EXPECT_EQ(*(ptrCh + 4), v.at(4));
 }
