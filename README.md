@@ -1,5 +1,16 @@
 # Custom-Vector
-A custom vector container that replicates the functionality of the std::vector class.
+This project implements a custom vector container that replicates the functionality of the std::vector class.
+
+## Project Directory Tree
+ * [include](./include)
+   * [CustomVector.h](./include/CustomVector.h)
+ * [src](./src)
+   * [main.cpp](./src/main.cpp)
+ * [tests](./tests)
+   * [CMakeLists.txt](./tests/CMakeLists.txt)
+   * [UnitTests_CustomVector.cc](./tests/UnitTests_CustomVector.cc)
+ * [CMakeLists.txt](./CMakeLists.txt)
+ * [README.md](./README.md)
 
 ## Build Instructions (From Linux Terminal)
 Requirements: CMake
