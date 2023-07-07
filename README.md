@@ -10,7 +10,7 @@ This project implements a custom vector container that replicates the functional
    * [main.cpp](./src/main.cpp)
  * [tests](./tests)
    * [CMakeLists.txt](./tests/CMakeLists.txt)
-   * [UnitTests_CustomVector.cc](./tests/UnitTests_CustomVector.cc)
+   * [UnitTests_CustomVector.cpp](./tests/UnitTests_CustomVector.cpp)
  * [CMakeLists.txt](./CMakeLists.txt)
  * [README.md](./README.md)
 
