@@ -37,6 +37,3 @@ Requirements: CMake
     `bin/CustomVector`  
 
 Note: Make sure you have CMake installed on your system before proceeding with the build instructions.
-
-
-Feel free to modify and extend the custom vector implementation as needed.
