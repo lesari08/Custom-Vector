@@ -1,6 +1,18 @@
 # Custom-Vector
-A custom vector container that replicates the functionality of the std::vector class.
-Uses Google Tests for testing (TO-DO)
+This project implements a custom vector container that replicates the functionality of the std::vector class.
+
+(Using Google Test Framework for Unit testing)
+
+## Project Directory Tree
+ * [include](./include)
+   * [CustomVector.h](./include/CustomVector.h)
+ * [src](./src)
+   * [main.cpp](./src/main.cpp)
+ * [tests](./tests)
+   * [CMakeLists.txt](./tests/CMakeLists.txt)
+   * [UnitTests_CustomVector.cc](./tests/UnitTests_CustomVector.cc)
+ * [CMakeLists.txt](./CMakeLists.txt)
+ * [README.md](./README.md)
 
 ## Build Instructions (From Linux Terminal)
 Requirements: CMake
@@ -27,6 +39,3 @@ Requirements: CMake
     `bin/CustomVector`  
 
 Note: Make sure you have CMake installed on your system before proceeding with the build instructions.
-
-
-Feel free to modify and extend the custom vector implementation as needed.
