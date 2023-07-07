@@ -1,6 +1,5 @@
 # Custom-Vector
 A custom vector container that replicates the functionality of the std::vector class.
-Uses Google Tests for testing (TO-DO)
 
 ## Build Instructions (From Linux Terminal)
 Requirements: CMake
