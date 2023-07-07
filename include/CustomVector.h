@@ -8,6 +8,7 @@
 #ifndef CUSTOM_VECTOR_H
 #define CUSTOM_VECTOR_H 1
 
+#include <algorithm>
 #include <memory>
 
 namespace custom
@@ -30,38 +31,29 @@ namespace custom
     template <class T, class AllocType>
     struct Vector_Memory_Manager
     {
-        Vector_Memory_Manager(const AllocType &_alloc, typename AllocType::size_type n)
-            : alloc{_alloc}, block_start{alloc.allocate(n)},
-              uninitialized_block_start{block_start + n},
-              block_end{block_start + n}
-        {
-        }
+        Vector_Memory_Manager(const AllocType &_alloc, typename AllocType::size_type n);
 
-        Vector_Memory_Manager(Vector_Memory_Manager &&other)
-            : alloc{other.alloc}, block_start{other.block_start},
-              uninitialized_block_start{other.uninitialized_block_start},
-              block_end{other.block_end}
-        {
-            other.block_start = other.block_end =
-                other.uninitialized_block_start = nullptr;
-        }
-
+        Vector_Memory_Manager(Vector_Memory_Manager &&other);
         Vector_Memory_Manager &operator=(Vector_Memory_Manager &&other);
 
         Vector_Memory_Manager() = delete;
+
         // no copy operations allowed
         Vector_Memory_Manager(const Vector_Memory_Manager &) = delete;
         Vector_Memory_Manager &operator=(const Vector_Memory_Manager &) = delete;
 
-        ~Vector_Memory_Manager()
-        {
-            alloc.deallocate(block_start,
-                             block_end - block_start);
-        }
+        ~Vector_Memory_Manager();
 
-        typename AllocType::size_type max_size()
+        typename AllocType::size_type max_size();
+
+        friend void swap(Vector_Memory_Manager &a, Vector_Memory_Manager &b)
         {
-            return std::allocator_traits<decltype(alloc)>::max_size(alloc);
+            // enable ADL (argument dependent lookup)
+            using namespace std;
+
+            swap(a.block_start, b.block_start);
+            swap(a.uninitialized_block_start, b.uninitialized_block_start);
+            swap(a.block_end, b.block_end);
         }
 
         AllocType alloc; // TODO: replace the allocator with allocator_traits
@@ -149,14 +141,19 @@ namespace custom
 
         Vector(const Vector &other);
         Vector(Vector &&other);
-        Vector &operator=(const Vector &other) const;
+
+        Vector &operator=(Vector &other);
+
         Vector &operator=(Vector &&other);
 
         ~Vector() { destroyElements(); }
 
         // Element Access
-        T &at(size_type idx) { return *(mem_manager.block_start + idx); }
+        T &at(size_type idx);
+        constexpr T &at(size_type idx) const;
+
         T &operator[](size_type idx) { return at(idx); }
+        const T &operator[](size_type idx) const { return at(idx); }
         T &front();
         T &back();
         constexpr T *data() { return mem_manager.block_start; }
@@ -187,6 +184,10 @@ namespace custom
             return mem_manager.uninitialized_block_start - mem_manager.block_start;
         }
 
+        friend void swap(Vector &a, Vector &b)
+        {
+            swap(a.mem_manager, b.mem_manager);
+        }
         //--------------------------------------------
         // Iterator Methods
         //--------------------------------------------
@@ -203,38 +204,88 @@ namespace custom
         Vector_Memory_Manager<T, AllocType> mem_manager;
     };
 
+    //--------------------------------------------------------------------------------------------
+    //------------------   Vector_Memory_Manager Methods    --------------------------------------
+    //--------------------------------------------------------------------------------------------
+
     /*******************************************************************************
-     *  @brief Vector_Memory_Manager:: move assignment operator
+     *  Vector_Memory_Manager::Constructor
      *
-     *  @tparam Type  Type of element.
-     *  @tparam AllocType  Allocator type, default value is allocator<_Type>.
+     *  @param _alloc allocation object
+     *  @param n allocation size
+     *
+     *******************************************************************************/
+    template <class T, class A>
+    Vector_Memory_Manager<T, A>::Vector_Memory_Manager(
+        const A &_alloc, typename A::size_type n)
+        : alloc{_alloc}, block_start{alloc.allocate(n)},
+          uninitialized_block_start{block_start},
+          block_end{block_start + n}
+    {
+    }
+
+    /*******************************************************************************
+     *  Vector_Memory_Manager::Move Constructor
+     *
      *  @param other Vector_Memory_Manager object
      *
      *******************************************************************************/
     template <class T, class A>
-    Vector_Memory_Manager<T, A> &
-    Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager &&other)
+    Vector_Memory_Manager<T, A>::Vector_Memory_Manager(Vector_Memory_Manager &&other)
+        : alloc{other.alloc}, block_start{other.block_start},
+          uninitialized_block_start{other.uninitialized_block_start},
+          block_end{other.block_end}
     {
-        if (this != &other)
-        {
-            alloc = other.alloc;
-            block_start = other.block_start;
-            uninitialized_block_start = other.uninitialized_block_start;
-            block_end = other.block_end;
+        other.block_start = other.block_end =
+            other.uninitialized_block_start = nullptr;
+    }
 
-            other.block_start = other.block_end = other.uninitialized_block_start = nullptr;
-
-            // std::swap(*this, other);
-        }
+    /*******************************************************************************
+     *  Vector_Memory_Manager:: move assignment operator
+     *
+     *  @param other Vector_Memory_Manager object
+     *  @return reference
+     *
+     *  Note: Currently implemented without freeing the memory 'other' contains at
+     *  the point of the return statement. That is because our assumption is that
+     * 'other' go out of scope in due time and free the memory without intervention
+     *******************************************************************************/
+    template <class T, class A>
+    Vector_Memory_Manager<T, A> &
+    Vector_Memory_Manager<T, A>::operator=(Vector_Memory_Manager<T, A> &&other)
+    {
+        swap(*this, other);
 
         return *this;
     }
 
     /*******************************************************************************
+     *  Vector_Memory_Manager:: destructor
+     *******************************************************************************/
+    template <class T, class A>
+    Vector_Memory_Manager<T, A>::~Vector_Memory_Manager()
+    {
+        alloc.deallocate(block_start, block_end - block_start);
+
+        block_end = uninitialized_block_start = block_start = nullptr;
+    }
+
+    /*******************************************************************************
+     *  @brief Vector_Memory_Manager:: max_size
+     *******************************************************************************/
+    template <class T, class A>
+    typename A::size_type Vector_Memory_Manager<T, A>::max_size()
+    {
+        return std::allocator_traits<decltype(alloc)>::max_size(alloc);
+    }
+
+    //--------------------------------------------------------------------------------------------
+    //-------------------------    VECTOR METHODS  -----------------------------------------------
+    //--------------------------------------------------------------------------------------------
+
+    /*******************************************************************************
      * @brief default constructor
      *
-     * @param n size
-     * @param val default value for constructed objects
      * @param alloc allocator
      * @return n/a
      *******************************************************************************/
@@ -259,6 +310,8 @@ namespace custom
         // construct n copies of val (in-place)
         std::uninitialized_fill(mem_manager.block_start,
                                 mem_manager.block_start + n, val);
+
+        mem_manager.uninitialized_block_start = mem_manager.block_start + n;
     }
 
     /*******************************************************************************
@@ -267,14 +320,16 @@ namespace custom
      * @param other vector object
      * @return n/a
      *******************************************************************************/
-    template <class T, typename A>
+    template <class T, class A>
     Vector<T, A>::Vector(const Vector &other)
         : mem_manager{other.mem_manager.alloc, other.size()}
     {
+        int n = other.size();
         T *other_start = other.mem_manager.block_start;
-        T *other_end = other.mem_manager.block_start + other.size();
+        T *other_end = other.mem_manager.block_start + n;
         std::uninitialized_copy(other_start, other_end, mem_manager.block_start);
-       // *this = other;
+
+        mem_manager.uninitialized_block_start = mem_manager.block_start + n;
     }
 
     /*******************************************************************************
@@ -284,18 +339,12 @@ namespace custom
      * @return Vector reference
      *******************************************************************************/
     template <class T, typename A>
-    Vector<T, A> &Vector<T, A>::operator=(const Vector &other) const
+    Vector<T, A> &Vector<T, A>::operator=(Vector<T, A> &other)
     {
-        if (this != &other)
-        {
-            // delete old objects
-            destroyElements();
-            mem_manager.block_start = mem_manager.alloc.allocate(other.size());
+        // copy-and-swap
+        Vector<T, A> temp(other);
+        swap(*this, temp);
 
-            T *other_start = other.mem_manager.block_start;
-            T *other_end = other.mem_manager.block_start + other.size();
-            std::uninitialized_copy(other_start, other_end, mem_manager.block_start);
-        }
         return *this;
     }
 
@@ -322,11 +371,10 @@ namespace custom
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(Vector &&other)
     {
-        if (this != &other)
-        {
-            destroyElements();
-            std::swap(mem_manager, other.mem_manager);
-        }
+        // TO-DO: Consider whether or not this simple swap suffices, or if after
+        // the swap, 'other' should explicibly have its objects destroyed
+        swap(*this, other);
+
         return *this;
     }
 
@@ -360,7 +408,7 @@ namespace custom
      *
      * @param new_size number of objects in vector
      *  after the operation has completed
-     * @param T val the value that will be assigned
+     * @param val the value that will be assigned
      *  to uninitialized memory spaces
      * @return n/a
      *******************************************************************************/
@@ -393,9 +441,34 @@ namespace custom
     }
 
     /*******************************************************************************
-     * front
+     * at
      *
-     * @brief return the maximum size that can be allocated
+     * @return value at index
+     *******************************************************************************/
+    template <class T, typename A>
+    T &Vector<T, A>::at(size_type idx)
+    {
+        if (idx < 0 || idx >= size())
+            throw std::out_of_range("Invalid index");
+
+        return *(mem_manager.block_start + idx);
+    }
+
+    /*******************************************************************************
+     * at
+     *
+     * @return const ref
+     *******************************************************************************/
+    template <class T, typename A>
+    constexpr T &Vector<T, A>::at(size_type idx) const
+    {
+        if (idx < 0 || idx >= size())
+            throw std::out_of_range("Invalid index");
+
+        return *(mem_manager.block_start + idx);
+    }
+    /*******************************************************************************
+     * front
      *
      * @return size_type
      *******************************************************************************/
@@ -455,6 +528,12 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::insert(size_type index, const T &val)
     {
+        if (index < 0)
+            throw std::out_of_range("Vector is empty");
+
+        // if idx >= size, determine whether or not to throw an exception, or
+        // to insert the value at the end of the vector
+
         throw std::logic_error("insert::Function Not Implemented");
     }
 
@@ -482,6 +561,7 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::pop_back()
     {
+        // __PRETTY_FUCNTION__
         if (empty())
             throw std::out_of_range("Vector is empty");
 
