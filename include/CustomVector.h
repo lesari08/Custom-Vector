@@ -72,7 +72,7 @@ namespace custom
 
     /*******************************************************************************
      * class Vector
-     * 
+     *
      *  @brief A custom vector container which replicates the
      *  functionality of std::vector
      *
@@ -154,12 +154,24 @@ namespace custom
 
         ~Vector() { destroyElements(); }
 
-        T at(size_type idx) { return *(mem_manager.block_start + idx); }
-        T operator[](size_type idx) { return at(idx); }
+        // Element Access
+        T &at(size_type idx) { return *(mem_manager.block_start + idx); }
+        T &operator[](size_type idx) { return at(idx); }
+        T &front();
+        T &back();
+        constexpr T *data() { return mem_manager.block_start; }
+        constexpr const T *data() const { return mem_manager.block_start; }
 
+        // Modifiers
         void push_back(const T &val);
         void insert(size_type index, const T &val);
+        void erase(Iterator position);
+        void pop_back();
+        void clear() { resize(0); }
+        void resize(size_type, T = {});
 
+        // Size & Capacity
+        void reserve(size_type);
         size_type capacity() const
         {
             return mem_manager.block_end - mem_manager.block_start;
@@ -168,11 +180,7 @@ namespace custom
         {
             return mem_manager.uninitialized_block_start - mem_manager.block_start == 0;
         }
-
         size_type maxSize() const;
-        void reserve(size_type);
-        void resize(size_type, T = {});
-        void clear() { resize(0); }
 
         size_type size() const
         {
@@ -188,9 +196,11 @@ namespace custom
         Iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
         const Iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
+    protected:
+        void destroyElements();
+
     private:
         Vector_Memory_Manager<T, AllocType> mem_manager;
-        void destroyElements();
     };
 
     /*******************************************************************************
@@ -220,7 +230,6 @@ namespace custom
         return *this;
     }
 
-
     /*******************************************************************************
      * @brief default constructor
      *
@@ -233,9 +242,6 @@ namespace custom
     Vector<T, A>::Vector(const A &alloc)
         : mem_manager{alloc, 0}
     {
-        // construct n copies of val (in-place)
-     //   std::uninitialized_fill(mem_manager.block_start,
-      //                          mem_manager.block_start + n, val);
     }
 
     /*******************************************************************************
@@ -263,9 +269,12 @@ namespace custom
      *******************************************************************************/
     template <class T, typename A>
     Vector<T, A>::Vector(const Vector &other)
-        : mem_manager{other.alloc111, other.size()}
+        : mem_manager{other.mem_manager.alloc, other.size()}
     {
-        uninitialized_copy(other.begin(), other.end(), mem_manager.block_start);
+        T *other_start = other.mem_manager.block_start;
+        T *other_end = other.mem_manager.block_start + other.size();
+        std::uninitialized_copy(other_start, other_end, mem_manager.block_start);
+       // *this = other;
     }
 
     /*******************************************************************************
@@ -277,12 +286,17 @@ namespace custom
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(const Vector &other) const
     {
-        Vector<T, A> vec;
+        if (this != &other)
+        {
+            // delete old objects
+            destroyElements();
+            mem_manager.block_start = mem_manager.alloc.allocate(other.size());
 
-        // delete old items before copying vals
-
-        throw std::logic_error("Function Not Implemented");
-        return vec;
+            T *other_start = other.mem_manager.block_start;
+            T *other_end = other.mem_manager.block_start + other.size();
+            std::uninitialized_copy(other_start, other_end, mem_manager.block_start);
+        }
+        return *this;
     }
 
     /*******************************************************************************
@@ -293,9 +307,10 @@ namespace custom
      *******************************************************************************/
     template <class T, typename A>
     Vector<T, A>::Vector(Vector &&other)
-        : mem_manager{other.alloc, other.size()}
+        : mem_manager{other.mem_manager.alloc, 0}
     {
-        throw std::logic_error("Function Not Implemented");
+        // call move assignment operator to avoid duplicate code
+        *this = std::move(other);
     }
 
     /*******************************************************************************
@@ -307,10 +322,12 @@ namespace custom
     template <class T, typename A>
     Vector<T, A> &Vector<T, A>::operator=(Vector &&other)
     {
-        Vector<T, A> vec;
-        throw std::logic_error("Function Not Implemented");
-
-        return vec;
+        if (this != &other)
+        {
+            destroyElements();
+            std::swap(mem_manager, other.mem_manager);
+        }
+        return *this;
     }
 
     /*******************************************************************************
@@ -371,13 +388,41 @@ namespace custom
     template <class T, typename A>
     typename Vector<T, A>::size_type Vector<T, A>::maxSize() const
     {
-        throw std::logic_error("Function Not Implemented");
+        throw std::logic_error("maxSize::Function Not Implemented");
         return 0;
     }
 
-    //------------------------------------------------------------
-    // Insertions
-    //------------------------------------------------------------
+    /*******************************************************************************
+     * front
+     *
+     * @brief return the maximum size that can be allocated
+     *
+     * @return size_type
+     *******************************************************************************/
+    template <class T, typename A>
+    T &Vector<T, A>::front()
+    {
+        if (empty())
+            throw std::out_of_range("Vector is empty");
+
+        return *mem_manager.block_start;
+    }
+
+    /*******************************************************************************
+     * back
+     *
+     * @brief return the maximum size that can be allocated
+     *
+     * @return size_type
+     *******************************************************************************/
+    template <class T, typename A>
+    T &Vector<T, A>::back()
+    {
+        if (empty())
+            throw std::out_of_range("Vector is empty");
+
+        return *(mem_manager.uninitialized_block_start - 1);
+    }
 
     /*******************************************************************************
      * push_back
@@ -410,7 +455,37 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::insert(size_type index, const T &val)
     {
-        throw std::logic_error("Function Not Implemented");
+        throw std::logic_error("insert::Function Not Implemented");
+    }
+
+    /*******************************************************************************
+     * erase
+     *
+     * @brief erase val at given iterator position
+     *
+     * @param position position of the elememt to erase
+     * @return void
+     *******************************************************************************/
+    template <class T, typename A>
+    void Vector<T, A>::erase(Iterator position)
+    {
+        throw std::logic_error("insert::Function Not Implemented");
+    }
+
+    /*******************************************************************************
+     * pop_back
+     *
+     * @brief erase last value in the vector
+     *
+     * @return void
+     *******************************************************************************/
+    template <class T, typename A>
+    void Vector<T, A>::pop_back()
+    {
+        if (empty())
+            throw std::out_of_range("Vector is empty");
+
+        throw std::logic_error("insert::Function Not Implemented");
     }
 
     /********************************************************************************

@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <numeric>
+
 #include "CustomVector.h"
 
 using namespace custom;
@@ -7,7 +9,9 @@ class VectorTest : public ::testing::Test
 protected:
     void SetUp() override
     {
-        vec2 = custom::Vector<int>(5, 0);
+        int size = 5;
+        vec1 = custom::Vector<int>(size);
+        std::iota(vec1.begin(), vec1.end(), 1);
     }
     // TearDown()
     //   custom::Vector<int> vec;
@@ -15,7 +19,6 @@ protected:
     custom::Vector<int> vec2;
     custom::Vector<int> vec3;
 };
-
 
 // Constructors
 TEST(TestConstructors, DefaultConstructor)
@@ -63,20 +66,18 @@ TEST(TestConstructors, MoveCopyConstructor)
     for (int i = 0; i < size; ++i)
         v.push_back(chars[i]);
 
-    //ensure vector has the expected values 
-    for(int i = 0; i < size; ++i)
+    // ensure vector has the expected values
+    for (int i = 0; i < size; ++i)
         ASSERT_EQ(v.at(i), chars[i]);
-
 
     Vector<char> copy_vec(std::move(v));
 
     EXPECT_EQ(v.size(), 0);
     ASSERT_EQ(copy_vec.size(), size);
 
-    //ensure copied vector has the expected values 
-    for(int i = 0; i < size; ++i)
+    // ensure copied vector has the expected values
+    for (int i = 0; i < size; ++i)
         ASSERT_EQ(copy_vec.at(i), chars[i]);
-
 }
 
 TEST(TestConstructors, AssignmentOperator)
@@ -105,8 +106,8 @@ TEST(TestConstructors, MoveAssignmentOperator)
     for (int i = 0; i < size; ++i)
         v.push_back(chars[i]);
 
-    //ensure vector has the expected values 
-    for(int i = 0; i < size; ++i)
+    // ensure vector has the expected values
+    for (int i = 0; i < size; ++i)
         ASSERT_EQ(v.at(i), chars[i]);
 
     Vector<char> copy_vec = std::move(v);
@@ -114,43 +115,51 @@ TEST(TestConstructors, MoveAssignmentOperator)
     EXPECT_EQ(v.size(), 0);
     ASSERT_EQ(copy_vec.size(), size);
 
-    //ensure copied vector has the expected values 
-    for(int i = 0; i < size; ++i)
+    // ensure copied vector has the expected values
+    for (int i = 0; i < size; ++i)
         ASSERT_EQ(copy_vec.at(i), chars[i]);
-
 }
 
+// Iterators
+TEST(VectorTestSuite, iteratorBegin)
+{
+    Vector<int> v;
+    int front_val = 4;
+    v.push_back(front_val);
+    EXPECT_EQ(front_val, *v.begin());
 
-// // Iterators
-// TEST(VectorTestSuite, iteratorBegin)
-// {
-// 	Vector<int> v;
+    // front value should remain unchanged
+    v.push_back(9);
+    EXPECT_EQ(front_val, *v.begin());
 
-// 	v.push_back(4);
-// 	EXPECT_EQ(4, *v.begin());
+    // change front value
+    front_val = -1;
+    v[0] = front_val;
+    Vector<int>::Iterator itr = v.begin();
 
-// 	v.push_back(9);
-// 	EXPECT_EQ(4, *v.begin());
+    ASSERT_EQ(*itr, *v.begin());
+    EXPECT_EQ(front_val, *itr);
 
-// 	v[0] = -1;
-// 	Vector<int>::iterator itr = v.begin();
-// 	EXPECT_EQ(-1, *itr);
+    ++itr;
+    EXPECT_EQ(9, *itr);
+    // Constant vector
+    const Vector<int> cv(v);
 
-// 	++itr;
-// 	EXPECT_EQ(9, *itr);
+    Vector<int>::Iterator constItr = cv.begin();
+    EXPECT_EQ(-1, *constItr);
+}
 
-// 	v.push_back(5);
+TEST_F(VectorTest, iteratorIncrement)
+{
 
-// 	EXPECT_EQ(9, *itr);
-// 	++itr;
-// 	EXPECT_EQ(5, *itr);
+    Vector<int>::Iterator itr = vec1.begin();
+    ASSERT_EQ(*itr, *vec1.begin());
 
-// 	// Constant vector
-// 	const Vector<int> cv = v;
-
-// 	Vector<int>::iterator constItr = cv.begin();
-// 	EXPECT_EQ(-1, *constItr);
-// }
+    for(int i = 0; i < vec1.size(); ++i){
+        ASSERT_EQ(*itr, vec1[i]);
+        ++itr;
+    }
+}
 
 // TEST(VectorTestSuite, iteratorEnd)
 // {
@@ -280,24 +289,24 @@ TEST(TestConstructors, MoveAssignmentOperator)
 // 	EXPECT_EQ(1, v.back());
 // }
 
-// TEST(VectorTestSuite, accessData)
-// {
-// 	Vector<char> v;
+TEST(VectorTestSuite, accessData)
+{
+	Vector<char> v;
 
-// 	v.push_back('t');
-// 	v.push_back('r');
-// 	v.push_back('o');
-// 	v.push_back('l');
-// 	v.push_back('l');
+	v.push_back('t');
+	v.push_back('r');
+	v.push_back('o');
+	v.push_back('l');
+	v.push_back('l');
 
-// 	char* ptrCh = v.data();
+	char* ptrCh = v.data();
 
-// 	EXPECT_EQ(*ptrCh, v.front());
-// 	EXPECT_EQ(*(ptrCh + 1), v.at(1));
-// 	EXPECT_EQ(*(ptrCh + 2), v.at(2));
-// 	EXPECT_EQ(*(ptrCh + 3), v.at(3));
-// 	EXPECT_EQ(*(ptrCh + 4), v.at(4));
-// }
+	EXPECT_EQ(*ptrCh, v.front());
+	EXPECT_EQ(*(ptrCh + 1), v.at(1));
+	EXPECT_EQ(*(ptrCh + 2), v.at(2));
+	EXPECT_EQ(*(ptrCh + 3), v.at(3));
+	EXPECT_EQ(*(ptrCh + 4), v.at(4));
+}
 
 // TEST_F(VectorTest, DequeueWorks) {
 //   int* n = vec1.Dequeue();
