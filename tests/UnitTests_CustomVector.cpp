@@ -228,13 +228,12 @@ TEST(IteratorTests, iteratorBegin)
     // Constant vector
     const Vector<int> cv(v);
 
-    Vector<int>::Iterator constItr = cv.begin();
+    Vector<int>::const_iterator constItr = cv.begin();
     EXPECT_EQ(-1, *constItr);
 }
 
 TEST_F(VectorTest, iteratorIncrement)
 {
-
     Vector<int>::Iterator itr = vec1.begin();
     ASSERT_EQ(*itr, *vec1.begin());
 
@@ -279,9 +278,50 @@ TEST(ModifierTests, popBack)
 
     EXPECT_EQ(v.back(), 9);
 
-    GTEST_SKIP() << "Not yet implemented";
     v.pop_back();
     EXPECT_EQ(v.back(), 8);
+
+    v.pop_back();
+    EXPECT_EQ(v.back(), 7);
+
+    v.push_back(12);
+    EXPECT_EQ(v.back(), 12);
+
+    v.pop_back();
+    EXPECT_EQ(v.back(), 7);
+}
+
+TEST(ModifierTests, resize)
+{
+    int org_size = 3;
+    Vector<int> v(org_size);
+    EXPECT_EQ(v.size(), org_size);
+    for (int i = 0; i < org_size; ++i)
+        EXPECT_EQ(v[i], 0);
+
+    v.resize(5, 2);
+    ASSERT_EQ(v.size(), 5);
+
+    // ensure the original values remain unchanged
+    EXPECT_EQ(v[0], 0);
+    EXPECT_EQ(v[1], 0);
+    EXPECT_EQ(v[2], 0);
+    // ensure new elements contain expected value
+    EXPECT_EQ(v[3], 2);
+    EXPECT_EQ(v[4], 2);
+}
+TEST(ModifierTests, destroy)
+{
+    Vector<const char *> vec;
+    vec.push_back("aaa");
+    vec.push_back("bbb");
+    vec.push_back("ccc");
+
+    ASSERT_EQ(vec.size(), 3);
+    ASSERT_STREQ(vec.front(), "aaa");
+    vec.destroyElements();
+
+    EXPECT_TRUE(vec.empty());
 }
 
 // Accessors
@@ -385,4 +425,27 @@ TEST(AccessorTests, accessData)
     EXPECT_EQ(*(ptrCh + 2), v.at(2));
     EXPECT_EQ(*(ptrCh + 3), v.at(3));
     EXPECT_EQ(*(ptrCh + 4), v.at(4));
+}
+
+TEST(AccessorTests, empty)
+{
+    Vector<int> v;
+    EXPECT_EQ(v.size(), 0);
+
+    v.push_back(5);
+    EXPECT_NE(v.size(), 0);
+
+    v.push_back(3);
+    v.push_back(2);
+    EXPECT_NE(v.size(), 0);
+}
+
+
+TEST(AccessorTests, maxSize)
+{
+     Vector<int> v;
+    // Theres no set expected max value,  
+    // but we do know that the value 
+    // should be greater than zero 
+     ASSERT_NE(v.maxSize(), 0);
 }
