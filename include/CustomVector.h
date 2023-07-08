@@ -44,9 +44,9 @@ namespace custom
 
         ~Vector_Memory_Manager();
 
-        typename AllocType::size_type max_size();
+        typename AllocType::size_type max_size() const noexcept;
 
-        friend void swap(Vector_Memory_Manager &a, Vector_Memory_Manager &b)
+        friend void swap(Vector_Memory_Manager &a, Vector_Memory_Manager &b) noexcept
         {
             // enable ADL (argument dependent lookup)
             using namespace std;
@@ -56,7 +56,7 @@ namespace custom
             swap(a.block_end, b.block_end);
         }
 
-        AllocType alloc; // TODO: replace the allocator with allocator_traits
+        AllocType alloc;
         T *block_start;
         T *uninitialized_block_start;
         T *block_end;
@@ -156,8 +156,8 @@ namespace custom
         const T &operator[](size_type idx) const { return at(idx); }
         T &front();
         T &back();
-        constexpr T *data() { return mem_manager.block_start; }
-        constexpr const T *data() const { return mem_manager.block_start; }
+        constexpr T *data() noexcept { return mem_manager.block_start; }
+        constexpr const T *data() const noexcept { return mem_manager.block_start; }
 
         // Modifiers
         void push_back(const T &val);
@@ -167,24 +167,24 @@ namespace custom
         void clear() { resize(0); }
         void resize(size_type, T = {});
 
-        // Size & Capacity
+        // Size and Capacity
         void reserve(size_type);
-        size_type capacity() const
+        size_type capacity() const noexcept
         {
             return mem_manager.block_end - mem_manager.block_start;
         }
-        bool empty() const
+        bool empty() const noexcept
         {
             return mem_manager.uninitialized_block_start - mem_manager.block_start == 0;
         }
-        size_type maxSize() const;
+        size_type maxSize() const noexcept;
 
-        size_type size() const
+        size_type size() const noexcept
         {
             return mem_manager.uninitialized_block_start - mem_manager.block_start;
         }
 
-        friend void swap(Vector &a, Vector &b)
+        friend void swap(Vector &a, Vector &b) noexcept
         {
             swap(a.mem_manager, b.mem_manager);
         }
@@ -193,13 +193,13 @@ namespace custom
         //--------------------------------------------
         using const_iterator = const Iterator;
         Iterator begin() { return Iterator(mem_manager.block_start); }
-        const Iterator begin() const { return const_iterator(mem_manager.block_start); }
+        const_iterator begin() const { return const_iterator(mem_manager.block_start); }
         Iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
-        const Iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
+        const_iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
-    protected:
         void destroyElements();
 
+    protected:
     private:
         Vector_Memory_Manager<T, AllocType> mem_manager;
     };
@@ -218,10 +218,12 @@ namespace custom
     template <class T, class A>
     Vector_Memory_Manager<T, A>::Vector_Memory_Manager(
         const A &_alloc, typename A::size_type n)
-        : alloc{_alloc}, block_start{alloc.allocate(n)},
-          uninitialized_block_start{block_start},
-          block_end{block_start + n}
+        : alloc{_alloc}
     {
+        using traits = std::allocator_traits<decltype(alloc)>;
+        block_start = traits::allocate(alloc, n);
+        uninitialized_block_start = block_start;
+        block_end = block_start + n;
     }
 
     /*******************************************************************************
@@ -232,12 +234,12 @@ namespace custom
      *******************************************************************************/
     template <class T, class A>
     Vector_Memory_Manager<T, A>::Vector_Memory_Manager(Vector_Memory_Manager &&other)
-        : alloc{other.alloc}, block_start{other.block_start},
-          uninitialized_block_start{other.uninitialized_block_start},
-          block_end{other.block_end}
+        : alloc{other.alloc},
+          block_start{nullptr},
+          uninitialized_block_start{nullptr},
+          block_end{nullptr}
     {
-        other.block_start = other.block_end =
-            other.uninitialized_block_start = nullptr;
+        swap(*this, other);
     }
 
     /*******************************************************************************
@@ -265,7 +267,9 @@ namespace custom
     template <class T, class A>
     Vector_Memory_Manager<T, A>::~Vector_Memory_Manager()
     {
-        alloc.deallocate(block_start, block_end - block_start);
+        using traits = std::allocator_traits<decltype(alloc)>;
+
+        traits::deallocate(alloc, block_start, block_end - block_start);
 
         block_end = uninitialized_block_start = block_start = nullptr;
     }
@@ -274,7 +278,7 @@ namespace custom
      *  @brief Vector_Memory_Manager:: max_size
      *******************************************************************************/
     template <class T, class A>
-    typename A::size_type Vector_Memory_Manager<T, A>::max_size()
+    typename A::size_type Vector_Memory_Manager<T, A>::max_size() const noexcept
     {
         return std::allocator_traits<decltype(alloc)>::max_size(alloc);
     }
@@ -315,7 +319,7 @@ namespace custom
     }
 
     /*******************************************************************************
-     * @brief copy constructor
+     * copy constructor
      *
      * @param other vector object
      * @return n/a
@@ -333,7 +337,7 @@ namespace custom
     }
 
     /*******************************************************************************
-     * @brief copy assignment operator
+     * copy assignment operator
      *
      * @param other vector object
      * @return Vector reference
@@ -392,13 +396,17 @@ namespace custom
         if (size_to_reserve < capacity())
             return;
 
-        Vector_Memory_Manager<T, A> new_manager{mem_manager.alloc, size_to_reserve};
+        Vector_Memory_Manager<T, A> next_mem_manager{
+            mem_manager.alloc, size_to_reserve};
 
-        std::uninitialized_copy(mem_manager.block_start,
-                                mem_manager.block_start + size(), new_manager.block_start);
+        std::uninitialized_move(mem_manager.block_start,
+                                mem_manager.block_start + size(),
+                                next_mem_manager.block_start);
 
-        new_manager.uninitialized_block_start = new_manager.block_start + size();
-        std::swap(new_manager, mem_manager);
+        next_mem_manager.uninitialized_block_start =
+            next_mem_manager.block_start + size();
+
+        std::swap(next_mem_manager, mem_manager);
     }
 
     /*******************************************************************************
@@ -406,22 +414,31 @@ namespace custom
      *
      * @brief resize vector based on given new_size
      *
-     * @param new_size number of objects in vector
-     *  after the operation has completed
-     * @param val the value that will be assigned
-     *  to uninitialized memory spaces
-     * @return n/a
+     * @param new_size number of objects in vector after the method completes
+     *
+     * @param val the value that will be assigned to the
+     *  uninitialized memory spaces
+     * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::resize(size_type new_size, T val)
     {
+        int prev_size = size();
         reserve(new_size);
-        if (size() < new_size)
-            std::uninitialized_fill(mem_manager.block_start + size(),
+        if (prev_size < new_size)
+        {
+            std::uninitialized_fill(mem_manager.block_start + prev_size,
                                     mem_manager.block_start + new_size, val);
+        }
         else // shrink
-            destory(mem_manager.alloc, mem_manager.block_start + new_size,
-                    mem_manager.block_start + size());
+        {
+            T *remove_start = mem_manager.block_start + prev_size;
+
+            size_type num_to_destroy = mem_manager.uninitialized_block_start -
+                                       remove_start;
+
+            std::destroy_n(remove_start, num_to_destroy);
+        }
 
         mem_manager.uninitialized_block_start = mem_manager.block_start + new_size;
     }
@@ -434,10 +451,9 @@ namespace custom
      * @return size_type
      *******************************************************************************/
     template <class T, typename A>
-    typename Vector<T, A>::size_type Vector<T, A>::maxSize() const
+    typename Vector<T, A>::size_type Vector<T, A>::maxSize() const noexcept
     {
-        throw std::logic_error("maxSize::Function Not Implemented");
-        return 0;
+        return mem_manager.max_size();
     }
 
     /*******************************************************************************
@@ -467,6 +483,7 @@ namespace custom
 
         return *(mem_manager.block_start + idx);
     }
+
     /*******************************************************************************
      * front
      *
@@ -509,10 +526,10 @@ namespace custom
     void Vector<T, A>::push_back(const T &val)
     {
         if (size() == capacity())
-            reserve(empty() ? 1 : size() * 2);
+            reserve(empty() ? 1 : size() << 1);
 
-        std::allocator_traits<decltype(mem_manager.alloc)>::construct(
-            mem_manager.alloc, mem_manager.uninitialized_block_start, val);
+        std::construct_at(mem_manager.uninitialized_block_start, val);
+
         ++mem_manager.uninitialized_block_start;
     }
 
@@ -531,8 +548,8 @@ namespace custom
         if (index < 0)
             throw std::out_of_range("Vector is empty");
 
-        // if idx >= size, determine whether or not to throw an exception, or
-        // to insert the value at the end of the vector
+        // if idx >= size, determine whether or not to throw an exception,
+        // or to insert the value at the end of the vector
 
         throw std::logic_error("insert::Function Not Implemented");
     }
@@ -541,31 +558,35 @@ namespace custom
      * erase
      *
      * @brief erase val at given iterator position
-     *
-     * @param position position of the elememt to erase
+     * @param position position to erase
      * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::erase(Iterator position)
     {
+        if (empty())
+            throw std::out_of_range(__PRETTY_FUNCTION__ + std::string(": Vector is empty"));
+
         throw std::logic_error("insert::Function Not Implemented");
     }
 
     /*******************************************************************************
      * pop_back
      *
-     * @brief erase last value in the vector
+     * @brief destroy and remove the last element from the vector
      *
      * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::pop_back()
     {
-        // __PRETTY_FUCNTION__
         if (empty())
-            throw std::out_of_range("Vector is empty");
+            throw std::out_of_range(__PRETTY_FUNCTION__ + std::string(": Vector is empty"));
 
-        throw std::logic_error("insert::Function Not Implemented");
+        T *to_remove = mem_manager.uninitialized_block_start - 1;
+        std::destroy_at(to_remove);
+
+        mem_manager.uninitialized_block_start -= 1;
     }
 
     /********************************************************************************
@@ -579,11 +600,7 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::destroyElements()
     {
-        for (T *ptr = mem_manager.block_start;
-             ptr != mem_manager.uninitialized_block_start; ++ptr)
-        {
-            std::destroy_at(ptr);
-        }
+        std::destroy_n(mem_manager.block_start, size());
 
         mem_manager.uninitialized_block_start = mem_manager.block_start;
     }
