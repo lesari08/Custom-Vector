@@ -83,7 +83,6 @@ namespace custom
 
     public:
         using size_type = size_t;
-        
 
         class Iterator
         {
@@ -91,8 +90,8 @@ namespace custom
             using iterator_category = std::random_access_iterator_tag;
             using difference_type = std::ptrdiff_t;
             using value_type = T;
-            using pointer = T*;
-            using reference = T&;
+            using pointer = T *;
+            using reference = T &;
 
             Iterator(T *ptr) : m_ptr(ptr) {}
 
@@ -144,12 +143,8 @@ namespace custom
 
             reference operator[](difference_type n) const { return *(m_ptr + n); }
 
-            bool operator==(const Iterator &other) const { return m_ptr == other.m_ptr; }
-            bool operator!=(const Iterator &other) const { return m_ptr != other.m_ptr; }
-            bool operator<(const Iterator &other) const { return m_ptr < other.m_ptr; }
-            bool operator>(const Iterator &other) const { return m_ptr > other.m_ptr; }
-            bool operator<=(const Iterator &other) const { return m_ptr <= other.m_ptr; }
-            bool operator>=(const Iterator &other) const { return m_ptr >= other.m_ptr; }
+            friend bool operator==(const Iterator &a, const Iterator &b)  { return a.m_ptr == b.m_ptr; }
+            friend bool operator!=(const Iterator &a, const Iterator &b)  { return a.m_ptr != b.m_ptr; }
 
         private:
             T *m_ptr;
@@ -584,18 +579,18 @@ namespace custom
     {
         auto itr_end = this->end();
 
-      //  if (empty() || position == itr_end())
-      //      return;
+        //  if (empty() || position == itr_end())
+        //      return;
 
         //  Iterator next = position;
         //  ++next;
         // while(position + 1 != itr_end)
         // {
-        //     Iterator next = 
+        //     Iterator next =
         //     swap(*position, *(position+1));
         //     ++position;
         // }
-        // the element to erase is now 
+        // the element to erase is now
         // the last element in the vector;
         pop_back();
     }
