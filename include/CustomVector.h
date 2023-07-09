@@ -83,15 +83,21 @@ namespace custom
 
     public:
         using size_type = size_t;
-        using difference_type = std::ptrdiff_t;
+        
 
         class Iterator
         {
         public:
+            using iterator_category = std::random_access_iterator_tag;
+            using difference_type = std::ptrdiff_t;
+            using value_type = T;
+            using pointer = T*;
+            using reference = T&;
+
             Iterator(T *ptr) : m_ptr(ptr) {}
 
-            T &operator*() const { return *m_ptr; }
-            T *operator->() const { return m_ptr; }
+            reference operator*() const { return *m_ptr; }
+            pointer operator->() const { return m_ptr; }
 
             Iterator &operator++()
             {
@@ -99,10 +105,25 @@ namespace custom
                 return *this;
             }
 
+            Iterator operator++(int)
+            {
+                Iterator temp = *this;
+
+                ++m_ptr;
+                return temp;
+            }
             Iterator &operator--()
             {
                 --m_ptr;
                 return *this;
+            }
+
+            Iterator operator--(int)
+            {
+                Iterator temp = *this;
+
+                --m_ptr;
+                return temp;
             }
 
             Iterator &operator+=(difference_type n)
@@ -121,7 +142,7 @@ namespace custom
 
             difference_type operator-(const Iterator &other) const { return m_ptr - other.m_ptr; }
 
-            T &operator[](difference_type n) const { return *(m_ptr + n); }
+            reference operator[](difference_type n) const { return *(m_ptr + n); }
 
             bool operator==(const Iterator &other) const { return m_ptr == other.m_ptr; }
             bool operator!=(const Iterator &other) const { return m_ptr != other.m_ptr; }
@@ -161,7 +182,7 @@ namespace custom
 
         // Modifiers
         void push_back(const T &val);
-        void insert(size_type index, const T &val);
+        void insert(Iterator index, const T &val);
         void erase(Iterator position);
         void pop_back();
         void clear() { resize(0); }
@@ -191,10 +212,11 @@ namespace custom
         //--------------------------------------------
         // Iterator Methods
         //--------------------------------------------
+        using iterator = Iterator;
         using const_iterator = const Iterator;
-        Iterator begin() { return Iterator(mem_manager.block_start); }
+        iterator begin() { return Iterator(mem_manager.block_start); }
         const_iterator begin() const { return const_iterator(mem_manager.block_start); }
-        Iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
+        iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
         const_iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
         void destroyElements();
@@ -239,6 +261,7 @@ namespace custom
           uninitialized_block_start{nullptr},
           block_end{nullptr}
     {
+
         swap(*this, other);
     }
 
@@ -543,13 +566,8 @@ namespace custom
      * @return void
      *******************************************************************************/
     template <class T, typename A>
-    void Vector<T, A>::insert(size_type index, const T &val)
+    void Vector<T, A>::insert(Iterator pos, const T &val)
     {
-        if (index < 0)
-            throw std::out_of_range("Vector is empty");
-
-        // if idx >= size, determine whether or not to throw an exception,
-        // or to insert the value at the end of the vector
 
         throw std::logic_error("insert::Function Not Implemented");
     }
@@ -564,10 +582,22 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::erase(Iterator position)
     {
-        if (empty())
-            throw std::out_of_range(__PRETTY_FUNCTION__ + std::string(": Vector is empty"));
+        auto itr_end = this->end();
 
-        throw std::logic_error("insert::Function Not Implemented");
+      //  if (empty() || position == itr_end())
+      //      return;
+
+        //  Iterator next = position;
+        //  ++next;
+        // while(position + 1 != itr_end)
+        // {
+        //     Iterator next = 
+        //     swap(*position, *(position+1));
+        //     ++position;
+        // }
+        // the element to erase is now 
+        // the last element in the vector;
+        pop_back();
     }
 
     /*******************************************************************************
