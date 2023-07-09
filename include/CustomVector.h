@@ -411,7 +411,7 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::reserve(size_type size_to_reserve)
     {
-        if (size_to_reserve < capacity())
+        if (size_to_reserve <= capacity())
             return;
 
         Vector_Memory_Manager<T, A> next_mem_manager{
@@ -431,33 +431,45 @@ namespace custom
      * resize
      *
      * @brief resize vector based on given new_size
+     * 
+     * If the given size is smaller than the vector's current size, the vector
+     * will be reduced.
      *
      * @param new_size number of objects in vector after the method completes
-     *
-     * @param val the value that will be assigned to the
-     *  uninitialized memory spaces
+
+     * @param val the value that will be assigned to the uninitialized
+     *  memory spaces if the new_size is greater than the current size.
+     *  
      * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::resize(size_type new_size, T val)
     {
-        int prev_size = size();
+        if(new_size == size())
+            return;
+
+        // ensure that there's enough allocated memory for the new_size
         reserve(new_size);
-        if (prev_size < new_size)
+
+        if (size() < new_size)
         {
-            std::uninitialized_fill(mem_manager.block_start + prev_size,
+            // The vector is expanding
+            // construct new elements in the uninitialized memory spaces
+            std::uninitialized_fill(mem_manager.uninitialized_block_start,
                                     mem_manager.block_start + new_size, val);
         }
         else // shrink
         {
-            T *remove_start = mem_manager.block_start + prev_size;
+            // The vector size is shrinking
+            // remove all elements at and after vector[new_size]
+            T *remove_start = mem_manager.block_start + size();
 
             size_type num_to_destroy = mem_manager.uninitialized_block_start -
                                        remove_start;
 
             std::destroy_n(remove_start, num_to_destroy);
         }
-
+        
         mem_manager.uninitialized_block_start = mem_manager.block_start + new_size;
     }
 
@@ -563,8 +575,7 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::insert(Iterator pos, const T &val)
     {
-
-        throw std::logic_error("insert::Function Not Implemented");
+        throw std::logic_error("insert::function not yet implemented");
     }
 
     /*******************************************************************************
@@ -577,7 +588,9 @@ namespace custom
     template <class T, typename A>
     void Vector<T, A>::erase(Iterator position)
     {
-        auto itr_end = this->end();
+        throw std::logic_error(__PRETTY_FUNCTION__ + std::string("function not yet implemented"));
+
+        //auto itr_end = this->end();
 
         //  if (empty() || position == itr_end())
         //      return;
@@ -592,7 +605,7 @@ namespace custom
         // }
         // the element to erase is now
         // the last element in the vector;
-        pop_back();
+        //pop_back();
     }
 
     /*******************************************************************************
