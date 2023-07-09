@@ -246,12 +246,46 @@ TEST_F(VectorTest, iteratorIncrement)
 
 TEST(IteratorTests, iteratorEnd)
 {
-    GTEST_SKIP() << "Not yet implemented";
+    Vector<int> vec;
+    vec.push_back(5);
+    Vector<int>::Iterator itr = --vec.end();
+    ASSERT_EQ(*itr, 5);
+
+    vec.push_back(7);
+    itr = --vec.end();
+    ASSERT_EQ(*itr, 7);
+
+    vec.push_back(15);
+    itr = --vec.end();
+    ASSERT_EQ(*itr, 15);
+
+    // GTEST_SKIP() << "Not yet implemented";
 }
 
 TEST(IteratorTests, iteratorSequence)
 {
     GTEST_SKIP() << "Not yet implemented";
+}
+
+TEST(IteratorTests, preFix)
+{
+    GTEST_SKIP() << "Not yet implemented";
+}
+
+TEST(IteratorTests, postFix)
+{
+    GTEST_SKIP() << "Not yet implemented";
+}
+
+TEST(IteratorTests, comparision)
+{
+    Vector<int> vec;
+    vec.push_back(5);
+
+    Vector<int>::Iterator a = vec.begin();
+    Vector<int>::Iterator b = vec.begin();
+
+    EXPECT_TRUE(a == b);
 }
 
 // Modifiers
@@ -289,6 +323,22 @@ TEST(ModifierTests, popBack)
 
     v.pop_back();
     EXPECT_EQ(v.back(), 7);
+}
+
+TEST(ModifierTests, insert)
+{
+
+    GTEST_SKIP() << "Not yet implemented";
+}
+
+TEST(ModifierTests, erase)
+{
+    Vector<char> vec;
+    vec.push_back('b');
+    vec.push_back('c');
+    vec.push_back('d');
+    vec.erase(vec.begin());
+    GTEST_SKIP() << "Not yet implemented";
 }
 
 TEST(ModifierTests, resize)
@@ -440,12 +490,11 @@ TEST(AccessorTests, empty)
     EXPECT_NE(v.size(), 0);
 }
 
-
 TEST(AccessorTests, maxSize)
 {
-     Vector<int> v;
-    // Theres no set expected max value,  
-    // but we do know that the value 
-    // should be greater than zero 
-     ASSERT_NE(v.maxSize(), 0);
+    Vector<int> v;
+    // Theres no set expected max value,
+    // but we do know that the value
+    // should be greater than zero
+    ASSERT_NE(v.maxSize(), 0);
 }
