@@ -357,26 +357,6 @@ TEST(ModifierTests, popBack)
     EXPECT_EQ(v.back(), 7);
 }
 
-TEST_F(VectorTest, insert)
-{
-   auto insert_itr = vec_int.insert(vec_int.begin(), 40);
-
-    EXPECT_TRUE(vec_int.begin() == insert_itr);
-    EXPECT_EQ(*insert_itr, 40);
-
-}
-
-TEST_F(VectorTest, modifierErase)
-{
-    int original_size = vec_int.size();
-    vec_int.erase(vec_int.begin());
-
-    EXPECT_EQ(vec_int.size(), original_size - 1);
-
-      EXPECT_EQ(vec_int[0], 2);
-     EXPECT_EQ(vec_int[1], 3);
-}
-
 TEST(ModifierTests, resize)
 {
     int org_size = 3;
@@ -396,18 +376,43 @@ TEST(ModifierTests, resize)
     EXPECT_EQ(v[3], 2);
     EXPECT_EQ(v[4], 2);
 }
-TEST(ModifierTests, destroy)
+
+
+TEST_F(VectorTest, insert)
 {
-    Vector<const char *> vec;
-    vec.push_back("aaa");
-    vec.push_back("bbb");
-    vec.push_back("ccc");
+    auto insert_itr = vec_int.insert(vec_int.begin(), 40);
 
-    ASSERT_EQ(vec.size(), 3);
-    ASSERT_STREQ(vec.front(), "aaa");
-    vec.destroyElements();
+    EXPECT_TRUE(vec_int.begin() == insert_itr);
+    EXPECT_EQ(*insert_itr, 40);
+}
 
-    EXPECT_TRUE(vec.empty());
+TEST_F(VectorTest, modifierErase)
+{
+    int original_size = vec_int.size();
+    vec_int.erase(vec_int.begin());
+
+    EXPECT_EQ(vec_int.size(), original_size - 1);
+
+    EXPECT_EQ(vec_int[0], 2);
+    EXPECT_EQ(vec_int[1], 3);
+}
+
+TEST_F(VectorTest, assign)
+{
+    Vector<int> vec;
+    vec.assign(5, 12);
+
+    ASSERT_TRUE(vec.size() == 5);
+    for (int num : vec)
+        EXPECT_EQ(num, 12);
+
+    // re-assign values in a
+    // vector that already has
+    // initialized values
+    vec_int.assign(30, 19);
+    ASSERT_TRUE(vec_int.size() == 30);
+    for (int num : vec_int)
+        EXPECT_EQ(num, 19);
 }
 
 // Accessors

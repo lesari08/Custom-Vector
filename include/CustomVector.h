@@ -139,12 +139,15 @@ namespace custom
             Iterator operator+(difference_type n) const { return Iterator(m_ptr + n); }
             Iterator operator-(difference_type n) const { return Iterator(m_ptr - n); }
 
-            difference_type operator-(const Iterator &other) const { return m_ptr - other.m_ptr; }
-
             reference operator[](difference_type n) const { return *(m_ptr + n); }
 
-            friend bool operator==(const Iterator &a, const Iterator &b)  { return a.m_ptr == b.m_ptr; }
-            friend bool operator!=(const Iterator &a, const Iterator &b)  { return a.m_ptr != b.m_ptr; }
+            friend difference_type operator-(const Iterator &a, const Iterator &b)
+            {
+                return a.m_ptr - b.m_ptr;
+            }
+
+            friend bool operator==(const Iterator &a, const Iterator &b) { return a.m_ptr == b.m_ptr; }
+            friend bool operator!=(const Iterator &a, const Iterator &b) { return a.m_ptr != b.m_ptr; }
 
         private:
             T *m_ptr;
@@ -159,7 +162,6 @@ namespace custom
         Vector(Vector &&other);
 
         Vector &operator=(Vector &other);
-
         Vector &operator=(Vector &&other);
 
         ~Vector() { destroyElements(); }
@@ -177,11 +179,12 @@ namespace custom
 
         // Modifiers
         void push_back(const T &val);
-        void insert(Iterator index, const T &val);
+        Iterator insert(Iterator index, const T &val);
         void erase(Iterator position);
         void pop_back();
         void clear() { resize(0); }
         void resize(size_type, T = {});
+        constexpr void assign(size_type n, const T val);
 
         // Size and Capacity
         void reserve(size_type);
@@ -209,14 +212,17 @@ namespace custom
         //--------------------------------------------
         using iterator = Iterator;
         using const_iterator = const Iterator;
-        iterator begin() { return Iterator(mem_manager.block_start); }
-        const_iterator begin() const { return const_iterator(mem_manager.block_start); }
-        iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
-        const_iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
+        constexpr iterator begin() { return Iterator(mem_manager.block_start); }
+        constexpr const_iterator begin() const { return const_iterator(mem_manager.block_start); }
+        constexpr const_iterator cbegin() const { return const_iterator(mem_manager.block_start); }
 
-        void destroyElements();
+        constexpr iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
+        constexpr const_iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
+        constexpr const_iterator cend() const { return const_iterator(mem_manager.uninitialized_block_start); }
 
     protected:
+        void destroyElements();
+
     private:
         Vector_Memory_Manager<T, AllocType> mem_manager;
     };
@@ -256,7 +262,6 @@ namespace custom
           uninitialized_block_start{nullptr},
           block_end{nullptr}
     {
-
         swap(*this, other);
     }
 
@@ -431,7 +436,7 @@ namespace custom
      * resize
      *
      * @brief resize vector based on given new_size
-     * 
+     *
      * If the given size is smaller than the vector's current size, the vector
      * will be reduced.
      *
@@ -439,13 +444,13 @@ namespace custom
 
      * @param val the value that will be assigned to the uninitialized
      *  memory spaces if the new_size is greater than the current size.
-     *  
+     *
      * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::resize(size_type new_size, T val)
     {
-        if(new_size == size())
+        if (new_size == size())
             return;
 
         // ensure that there's enough allocated memory for the new_size
@@ -469,8 +474,25 @@ namespace custom
 
             std::destroy_n(remove_start, num_to_destroy);
         }
-        
+
         mem_manager.uninitialized_block_start = mem_manager.block_start + new_size;
+    }
+
+    /*******************************************************************************
+     * assign
+     *
+     * @brief replace the contents of the vector with n copies of the given val
+     *
+     * @param n size
+     * @param val default value for constructed objects
+     *
+     * @return void
+     *******************************************************************************/
+    template <class T, typename A>
+    constexpr void Vector<T, A>::assign(size_type n, const T val)
+    {
+        Vector<T, A> new_vec(n, val);
+        swap(*this, new_vec);
     }
 
     /*******************************************************************************
@@ -570,42 +592,56 @@ namespace custom
      *
      * @param index position to insert
      * @param val the value to add
+     *
      * @return void
      *******************************************************************************/
     template <class T, typename A>
-    void Vector<T, A>::insert(Iterator pos, const T &val)
+    Vector<T, A>::Iterator Vector<T, A>::insert(Iterator pos, const T &val)
     {
-        throw std::logic_error("insert::function not yet implemented");
+        // Implementation logic: First insert the new element at the
+        // back of the vector. Then move the new element to its correct
+        // position via a series of swaps
+
+        // store the pos idx since the call to
+        // push_back may invalidate the iterator
+        size_t idx_to_insert = pos - begin();
+        push_back(val);
+
+        Iterator location = this->begin() + idx_to_insert;
+
+        auto right = --end();
+        while (right != location)
+        {
+            std::swap(*(right - 1), *right);
+            --right;
+        }
+
+        return location;
     }
 
     /*******************************************************************************
      * erase
      *
-     * @brief erase val at given iterator position
+     * @brief remove element at given iterator position
      * @param position position to erase
      * @return void
      *******************************************************************************/
     template <class T, typename A>
     void Vector<T, A>::erase(Iterator position)
     {
-        throw std::logic_error(__PRETTY_FUNCTION__ + std::string("function not yet implemented"));
+        // throw std::logic_error(__PRETTY_FUNCTION__ + std::string("function not yet implemented"));
 
-        //auto itr_end = this->end();
+        if (empty() || position == end())
+            return;
 
-        //  if (empty() || position == itr_end())
-        //      return;
-
-        //  Iterator next = position;
-        //  ++next;
-        // while(position + 1 != itr_end)
-        // {
-        //     Iterator next =
-        //     swap(*position, *(position+1));
-        //     ++position;
-        // }
+        while (position + 1 != end())
+        {
+            std::swap(*position, *(position + 1));
+            ++position;
+        }
         // the element to erase is now
         // the last element in the vector;
-        //pop_back();
+        pop_back();
     }
 
     /*******************************************************************************
