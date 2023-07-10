@@ -94,6 +94,7 @@ TEST(MemoryManger, max_size)
     // But we do know it should not be zero;
     EXPECT_TRUE(mgr.max_size() != 0);
 }
+
 //--------------------------------------------------------------------------------------------
 //---------------   class Vector tests    ----------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -356,12 +357,13 @@ TEST(ModifierTests, popBack)
     EXPECT_EQ(v.back(), 7);
 }
 
-TEST(ModifierTests, insert)
+TEST_F(VectorTest, insert)
 {
-    Vector<char> vec;
-    vec.push_back(1);
+   auto insert_itr = vec_int.insert(vec_int.begin(), 40);
 
-    GTEST_SKIP() << "Not yet implemented";
+    EXPECT_TRUE(vec_int.begin() == insert_itr);
+    EXPECT_EQ(*insert_itr, 40);
+
 }
 
 TEST_F(VectorTest, modifierErase)
@@ -371,8 +373,8 @@ TEST_F(VectorTest, modifierErase)
 
     EXPECT_EQ(vec_int.size(), original_size - 1);
 
-    //   EXPECT_EQ(vec_int[0], 2);
-    //  EXPECT_EQ(vec_int[1], 3);
+      EXPECT_EQ(vec_int[0], 2);
+     EXPECT_EQ(vec_int[1], 3);
 }
 
 TEST(ModifierTests, resize)
