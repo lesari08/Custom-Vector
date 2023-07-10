@@ -14,6 +14,10 @@ This project implements a custom vector container that replicates the functional
  * [CMakeLists.txt](./CMakeLists.txt)
  * [README.md](./README.md)
 
+
+## Implemented Methods
+All Member Functions of [std::vector](https://en.cppreference.com/w/cpp/container/vector) (as of C++20)
+
 ## Build Instructions (From Linux Terminal)
 Requirements: CMake
 
