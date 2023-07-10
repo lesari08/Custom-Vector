@@ -9,7 +9,7 @@ using namespace custom;
 //---------------   class Vector_Memory_Manager tests    -------------------------------------
 //--------------------------------------------------------------------------------------------
 
-TEST(MemoryManger, emptCtor)
+TEST(MemoryManger, emptybj)
 {
     std::allocator<int> alloc;
     Vector_Memory_Manager<int, std::allocator<int>> empty_mgr(alloc, 0);
@@ -84,6 +84,16 @@ TEST(MemoryManger, deletedConstructor)
     EXPECT_FALSE(std::is_copy_assignable<MemoryManger>::value);
 }
 
+TEST(MemoryManger, max_size)
+{
+    using MemoryManger = Vector_Memory_Manager<int, std::allocator<int>>;
+    std::allocator<int> alloc;
+    MemoryManger mgr(alloc, 5);
+
+    // There isnt a specific size we're expecting.
+    // But we do know it should not be zero;
+    EXPECT_TRUE(mgr.max_size() != 0);
+}
 //--------------------------------------------------------------------------------------------
 //---------------   class Vector tests    ----------------------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -94,12 +104,18 @@ protected:
     void SetUp() override
     {
         int size = 5;
-        custom::Vector<int> vec1(size);
-        std::iota(vec1.begin(), vec1.end(), 1);
+        vec_int = custom::Vector<int>(size);
+        std::iota(vec_int.begin(), vec_int.end(), 1);
+
+        vec_char.push_back('a');
+        vec_char.push_back('b');
+        vec_char.push_back('c');
+        vec_char.push_back('d');
+        vec_char.push_back('e');
     }
     // TearDown()
-    custom::Vector<int> vec1;
-    custom::Vector<int> vec2;
+    custom::Vector<int> vec_int;
+    custom::Vector<char> vec_char;
     custom::Vector<int> vec3;
 };
 
@@ -121,24 +137,6 @@ TEST(ConstructorTests, ParamConstructor)
 
     for (int num : vec)
         EXPECT_EQ(num, intitial_val);
-}
-
-TEST(ConstructorTests, CopyConstructor)
-{
-    Vector<char> v;
-    v.push_back('a');
-    v.push_back('z');
-    v.push_back('x');
-    v.push_back('r');
-    v.push_back('e');
-
-    Vector<char> copy(v);
-
-    EXPECT_EQ(v.at(0), copy.at(0));
-    EXPECT_EQ(v.at(1), copy.at(1));
-    EXPECT_EQ(v.at(2), copy.at(2));
-    EXPECT_EQ(v.at(3), copy.at(3));
-    EXPECT_EQ(v.at(4), copy.at(4));
 }
 
 TEST(ConstructorTests, MoveCopyConstructor)
@@ -203,6 +201,19 @@ TEST(ConstructorTests, MoveAssignmentOperator)
         ASSERT_EQ(copy_vec.at(i), chars[i]);
 }
 
+TEST_F(VectorTest, CopyConstructor)
+{
+
+    EXPECT_FALSE(vec_char.empty());
+    Vector<char> copy(vec_char);
+
+    EXPECT_EQ(vec_char.at(0), copy.at(0));
+    EXPECT_EQ(vec_char.at(1), copy.at(1));
+    EXPECT_EQ(vec_char.at(2), copy.at(2));
+    EXPECT_EQ(vec_char.at(3), copy.at(3));
+    EXPECT_EQ(vec_char.at(4), copy.at(4));
+}
+
 // Iterators
 TEST(IteratorTests, iteratorBegin)
 {
@@ -234,12 +245,12 @@ TEST(IteratorTests, iteratorBegin)
 
 TEST_F(VectorTest, iteratorIncrement)
 {
-    Vector<int>::Iterator itr = vec1.begin();
-    ASSERT_EQ(*itr, *vec1.begin());
+    Vector<int>::Iterator itr = vec_int.begin();
+    ASSERT_EQ(*itr, *vec_int.begin());
 
-    for (int i = 0; i < vec1.size(); ++i)
+    for (int i = 0; i < vec_int.size(); ++i)
     {
-        ASSERT_EQ(*itr, vec1[i]);
+        ASSERT_EQ(*itr, vec_int[i]);
         ++itr;
     }
 }
@@ -269,11 +280,31 @@ TEST(IteratorTests, iteratorSequence)
 
 TEST(IteratorTests, preFix)
 {
+    // + & -
     GTEST_SKIP() << "Not yet implemented";
 }
 
 TEST(IteratorTests, postFix)
 {
+    // + & -
+    GTEST_SKIP() << "Not yet implemented";
+}
+
+TEST(IteratorTests, other)
+{
+    /*
+    +=
+    -=
+    itr += val
+    itr + 5
+    itr - 5
+
+    itr1 - itr2
+    itr1 == itr2
+    itr1 != itr2
+
+    const begin, end
+    */
     GTEST_SKIP() << "Not yet implemented";
 }
 
@@ -327,18 +358,21 @@ TEST(ModifierTests, popBack)
 
 TEST(ModifierTests, insert)
 {
+    Vector<char> vec;
+    vec.push_back(1);
 
     GTEST_SKIP() << "Not yet implemented";
 }
 
-TEST(ModifierTests, erase)
+TEST_F(VectorTest, modifierErase)
 {
-    Vector<char> vec;
-    vec.push_back('b');
-    vec.push_back('c');
-    vec.push_back('d');
-    vec.erase(vec.begin());
-    GTEST_SKIP() << "Not yet implemented";
+    int original_size = vec_int.size();
+    vec_int.erase(vec_int.begin());
+
+    EXPECT_EQ(vec_int.size(), original_size - 1);
+
+    //   EXPECT_EQ(vec_int[0], 2);
+    //  EXPECT_EQ(vec_int[1], 3);
 }
 
 TEST(ModifierTests, resize)
@@ -497,4 +531,19 @@ TEST(AccessorTests, maxSize)
     // but we do know that the value
     // should be greater than zero
     ASSERT_NE(v.maxSize(), 0);
+}
+
+TEST(AccessorTests, other)
+{
+    /*
+    back()
+    front()
+    clear()
+    reserve
+    capacity
+    empty
+    size
+    swap
+
+    */
 }
