@@ -256,6 +256,34 @@ TEST_F(VectorTest, iteratorIncrement)
     }
 }
 
+TEST_F(VectorTest, revItr)
+{
+    Vector<int> vec;
+    int size = 5;
+    vec.reserve(size);
+    vec.push_back(1);
+    vec.push_back(2);
+    vec.push_back(3);
+    vec.push_back(4);
+    vec.push_back(5);
+
+    ASSERT_EQ(vec.size(), 5);
+
+    // test the reverse_iterator post increment operator
+    Vector<int>::reverse_iterator r_itr = vec.rbegin();
+    for (int i = vec.size() - 1; i >= 0; --i)
+    {
+        EXPECT_EQ(*r_itr++, vec[i]);
+    }
+
+    // test the reverse_iterator post decrement operator
+    Vector<int>::reverse_iterator r_end = --vec.rend();
+    for (int i = 0; i < vec.size(); ++i)
+    {
+        EXPECT_EQ(*r_end--, vec[i]);
+    }
+}
+
 TEST(IteratorTests, iteratorEnd)
 {
     Vector<int> vec;
@@ -294,6 +322,7 @@ TEST(IteratorTests, postFix)
 TEST(IteratorTests, other)
 {
     /*
+    Other operations to test 
     +=
     -=
     itr += val
@@ -376,7 +405,6 @@ TEST(ModifierTests, resize)
     EXPECT_EQ(v[3], 2);
     EXPECT_EQ(v[4], 2);
 }
-
 
 TEST_F(VectorTest, insert)
 {
