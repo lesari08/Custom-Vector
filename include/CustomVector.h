@@ -9,6 +9,7 @@
 #define CUSTOM_VECTOR_H 1
 
 #include <algorithm>
+#include <initializer_list>
 #include <memory>
 
 namespace custom
@@ -146,6 +147,8 @@ namespace custom
                 return a.m_ptr - b.m_ptr;
             }
 
+            friend bool operator>(const Iterator &a, const Iterator &b) { return a.m_ptr > b.m_ptr; }
+            friend bool operator<(const Iterator &a, const Iterator &b) { return a.m_ptr < b.m_ptr; }
             friend bool operator==(const Iterator &a, const Iterator &b) { return a.m_ptr == b.m_ptr; }
             friend bool operator!=(const Iterator &a, const Iterator &b) { return a.m_ptr != b.m_ptr; }
 
@@ -154,6 +157,8 @@ namespace custom
         };
 
         Vector(const AllocType &alloc = AllocType());
+
+        Vector(std::initializer_list<T> ilist, const AllocType &alloc = AllocType());
 
         explicit Vector(size_type n, const T &val = T(),
                         const AllocType &alloc = AllocType());
@@ -212,6 +217,7 @@ namespace custom
         //--------------------------------------------
         using iterator = Iterator;
         using const_iterator = const Iterator;
+        using reverse_iterator = std::reverse_iterator<Iterator>;
         constexpr iterator begin() { return Iterator(mem_manager.block_start); }
         constexpr const_iterator begin() const { return const_iterator(mem_manager.block_start); }
         constexpr const_iterator cbegin() const { return const_iterator(mem_manager.block_start); }
@@ -219,6 +225,9 @@ namespace custom
         constexpr iterator end() { return Iterator(mem_manager.uninitialized_block_start); }
         constexpr const_iterator end() const { return const_iterator(mem_manager.uninitialized_block_start); }
         constexpr const_iterator cend() const { return const_iterator(mem_manager.uninitialized_block_start); }
+
+        constexpr reverse_iterator rbegin() const { return reverse_iterator(mem_manager.uninitialized_block_start); }
+        constexpr reverse_iterator rend() const { return reverse_iterator(mem_manager.block_start); }
 
     protected:
         void destroyElements();
@@ -320,6 +329,22 @@ namespace custom
     Vector<T, A>::Vector(const A &alloc)
         : mem_manager{alloc, 0}
     {
+    }
+
+    /*******************************************************************************
+     * @brief initializer_list constructor 
+     *
+     * @param ilist list of type T objects 
+     * @param alloc allocator
+     * @return n/a
+     *******************************************************************************/
+    template <class T, typename A>
+    Vector<T, A>::Vector(std::initializer_list<T> ilist, const A &alloc)
+        : mem_manager{alloc, ilist.size()}
+    {
+        std::uninitialized_copy(ilist.begin(), ilist.end(), mem_manager.block_start);
+
+        mem_manager.uninitialized_block_start = mem_manager.block_start + ilist.size();
     }
 
     /*******************************************************************************
@@ -598,10 +623,14 @@ namespace custom
     template <class T, typename A>
     Vector<T, A>::Iterator Vector<T, A>::insert(Iterator pos, const T &val)
     {
-        // Implementation logic: First insert the new element at the
-        // back of the vector. Then move the new element to its correct
+        // Implementation logic: First insert the new element at the end
+        // of the vector. Then move slide the new element into its correct
         // position via a series of swaps
 
+        if (pos < begin() || pos > end())
+        {
+            throw std::out_of_range("Invalid iterator. Insertion failed.");
+        }
         // store the pos idx since the call to
         // push_back may invalidate the iterator
         size_t idx_to_insert = pos - begin();
