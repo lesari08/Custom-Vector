@@ -9,7 +9,7 @@ using namespace custom;
 //---------------   class Vector_Memory_Manager tests    -------------------------------------
 //--------------------------------------------------------------------------------------------
 
-TEST(MemoryManger, emptybj)
+TEST(MemoryManger, verifyObjectEmpty)
 {
     std::allocator<int> alloc;
     Vector_Memory_Manager<int, std::allocator<int>> empty_mgr(alloc, 0);
@@ -114,10 +114,12 @@ protected:
         vec_char.push_back('d');
         vec_char.push_back('e');
     }
-    // TearDown()
+
+    //shared vectors 
     custom::Vector<int> vec_int;
     custom::Vector<char> vec_char;
-    custom::Vector<int> vec3;
+
+    // TearDown()
 };
 
 // Constructors
@@ -126,6 +128,16 @@ TEST(ConstructorTests, DefaultConstructor)
     Vector<int> v;
     EXPECT_EQ(v.size(), 0);
     EXPECT_EQ(v.capacity(), 0);
+}
+
+// Constructors
+TEST(ConstructorTests, initializerListConstructor)
+{
+    Vector<int> v{11, 22, 33, 44};
+    EXPECT_EQ(v[0], 11);
+    EXPECT_EQ(v[1], 22);
+    EXPECT_EQ(v[2], 33);
+    EXPECT_EQ(v[3], 44);
 }
 
 TEST(ConstructorTests, ParamConstructor)
@@ -164,12 +176,7 @@ TEST(ConstructorTests, MoveCopyConstructor)
 
 TEST(ConstructorTests, AssignmentOperator)
 {
-    Vector<char> v;
-    v.push_back('a');
-    v.push_back('z');
-    v.push_back('x');
-    v.push_back('r');
-    v.push_back('e');
+    Vector<char> v{'a','z','x','r','e'};
 
     Vector<char> copy = v;
 
@@ -319,10 +326,21 @@ TEST(IteratorTests, postFix)
     GTEST_SKIP() << "Not yet implemented";
 }
 
-TEST(IteratorTests, other)
+TEST(IteratorTests, comparision)
+{
+    Vector<int> vec;
+    vec.push_back(5);
+
+    Vector<int>::Iterator a = vec.begin();
+    Vector<int>::Iterator b = vec.begin();
+
+    EXPECT_TRUE(a == b);
+}
+
+TEST(IteratorTests, TODO)
 {
     /*
-    Other operations to test 
+    Other operations to test
     +=
     -=
     itr += val
@@ -338,16 +356,7 @@ TEST(IteratorTests, other)
     GTEST_SKIP() << "Not yet implemented";
 }
 
-TEST(IteratorTests, comparision)
-{
-    Vector<int> vec;
-    vec.push_back(5);
 
-    Vector<int>::Iterator a = vec.begin();
-    Vector<int>::Iterator b = vec.begin();
-
-    EXPECT_TRUE(a == b);
-}
 
 // Modifiers
 TEST(ModifierTests, pushBack)
@@ -529,13 +538,7 @@ TEST(AccessorTests, accessBack)
 
 TEST(AccessorTests, accessData)
 {
-    Vector<char> v;
-
-    v.push_back('t');
-    v.push_back('r');
-    v.push_back('o');
-    v.push_back('l');
-    v.push_back('l');
+    Vector<char> v{'t','r','o','l','l'};
 
     char *ptrCh = v.data();
 
