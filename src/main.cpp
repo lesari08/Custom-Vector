@@ -1,13 +1,15 @@
 
 #include <iostream>
+#include <vector>
 
 #include "CustomVector.h"
 
-using namespace std;
-
+using namespace custom;
 
 int main()
 {
-    cout<<"in main cpp\n";
+  using namespace std;
 
+
+ 
 }
