@@ -1,7 +1,7 @@
 # Custom-Vector
 This project implements a custom vector container that replicates the functionality of the std::vector class.
 
-(Using Google Test Framework for Unit testing)
+(Using Google Test Framework for unit testing)
 
 ## Project Directory Tree
  * [include](./include)
