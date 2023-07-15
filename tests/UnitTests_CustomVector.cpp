@@ -12,7 +12,7 @@ using namespace custom;
 TEST(MemoryManger, verifyObjectEmpty)
 {
     std::allocator<int> alloc;
-    Vector_Memory_Manager<int, std::allocator<int>> empty_mgr(alloc, 1);
+    Vector_Memory_Manager<int, std::allocator<int>> empty_mgr(alloc, 0);
     ASSERT_EQ(empty_mgr.block_start, empty_mgr.block_end);
     EXPECT_EQ(empty_mgr.block_start, empty_mgr.uninitialized_block_start);
 }
