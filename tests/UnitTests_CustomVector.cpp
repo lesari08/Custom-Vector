@@ -13,7 +13,7 @@ TEST(MemoryManger, verifyObjectEmpty)
 {
     std::allocator<int> alloc;
     Vector_Memory_Manager<int, std::allocator<int>> empty_mgr(alloc, 1);
-    EXPECT_EQ(empty_mgr.block_start, empty_mgr.block_end);
+    ASSERT_EQ(empty_mgr.block_start, empty_mgr.block_end);
     EXPECT_EQ(empty_mgr.block_start, empty_mgr.uninitialized_block_start);
 }
 
