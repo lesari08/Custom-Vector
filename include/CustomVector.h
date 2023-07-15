@@ -563,8 +563,8 @@ namespace custom
 
     /*******************************************************************************
      * front
-     *
-     * @return size_type
+     * @brief return the first element 
+     * @return reference
      *******************************************************************************/
     template <class T, typename A>
     T &Vector<T, A>::front()
@@ -578,9 +578,8 @@ namespace custom
     /*******************************************************************************
      * back
      *
-     * @brief return the maximum size that can be allocated
-     *
-     * @return size_type
+     * @brief return the last element 
+     * @return reference
      *******************************************************************************/
     template <class T, typename A>
     T &Vector<T, A>::back()
@@ -595,7 +594,6 @@ namespace custom
      * push_back
      *
      * @brief append element to end of vector
-     *
      * @param val the value to add to vector
      * @return n/a
      *******************************************************************************/
