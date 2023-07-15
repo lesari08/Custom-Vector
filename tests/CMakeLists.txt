@@ -31,4 +31,11 @@ target_link_libraries( ${TEST1} GTest::gtest_main)
 
 #look for tests in the given executable
 include(GoogleTest)
-gtest_discover_tests(${TEST1})
+gtest_discover_tests(
+${TEST1} 
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  XML_OUTPUT_DIR unit_test_results
+
+)
+
+
