@@ -17,8 +17,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(tests)
 
+<<<<<<< HEAD
 enable_testing()
 # add the executable
+=======
+>>>>>>> 5323647ab54a1120649648d0cee1f2c22422f5c5
 add_executable(CustomVector src/main.cpp)
 
 
