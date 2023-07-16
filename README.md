@@ -1,9 +1,6 @@
 # Custom-Vector
 This project implements a custom vector container that replicates the functionality of the std::vector class.
 
-(Using Google Test Framework for unit testing)
-
-
 ## Project Directory Tree
  * [include](./include)
    * [CustomVector.h](./include/CustomVector.h)
@@ -44,3 +41,10 @@ Requirements: CMake
     `bin/CustomVector`  
 
 Note: Make sure you have CMake installed on your system before proceeding with the build instructions.
+
+## Manual Testing 
+To run the suite of functional unit tests(using Google Test Framework), follow the prior build instruction steps 1 through 6.
+Finally, run the executable named bin/UnitTests_CustomVector. The results will be found under directory Custom-Vector/build/unit_test_results
+
+## Automated Testing with Jenkins
+This repository is configured with automated server Jenkins, so after each commit to this repository, functional unit tests are automatically run, as well as Valgrind Memcheck to test for any memory-related issues.
