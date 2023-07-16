@@ -17,6 +17,7 @@ TEST(MemoryManger, verifyObjectEmpty)
     EXPECT_EQ(empty_mgr.block_start, empty_mgr.uninitialized_block_start);
 }
 
+
 TEST(MemoryManger, constructor)
 {
     std::allocator<int> alloc;
