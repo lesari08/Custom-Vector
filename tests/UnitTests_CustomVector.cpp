@@ -28,6 +28,7 @@ TEST(MemoryManger, constructor)
     EXPECT_EQ(mgr.block_start + size, mgr.block_end);
 }
 
+
 TEST(MemoryManger, moveConstructor)
 {
     using MemoryManger = Vector_Memory_Manager<int, std::allocator<int>>;
