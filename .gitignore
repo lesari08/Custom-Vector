@@ -1,3 +1,7 @@
 .vs*
 *.exe
 build
+unit_test_results
+Testing
+
+
